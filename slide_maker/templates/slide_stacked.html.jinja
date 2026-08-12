@@ -1,0 +1,11 @@
+{%- if slide.kicker %}<h2 class="kicker">{{ slide.kicker }}</h2>{% endif %}
+{%- if slide.title %}<h1>{{ slide.title }}</h1>{% endif %}
+<div class="slide-body stacked">
+  {{ slide.body_html | safe }}
+  {%- if slide.formula_html %}
+  <div class="formula-box">{{ slide.formula_html | safe }}</div>
+  {%- if slide.formula_note %}
+  <p class="formula-note">{{ slide.formula_note }}</p>
+  {%- endif %}
+  {%- endif %}
+</div>

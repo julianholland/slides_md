@@ -1,0 +1,433 @@
+:root {
+  --bg: #1a1d23;
+  --bg-panel: #22262e;
+  --fg: #eef0f3;
+  --fg-muted: #aab1bd;
+  --accent: #f4c542;
+  --accent-dim: #8a7228;
+  --border: #3a3f4a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  overflow: hidden;
+}
+
+.deck {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
+
+.slide {
+  position: absolute;
+  inset: 0;
+  display: none;
+  padding: 6vh 8vw;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.slide.active {
+  display: block;
+  opacity: 1;
+}
+
+/* generic background-image-with-alpha layer, usable on any slide.
+   background-image/opacity are set inline per-slide (not via CSS custom
+   properties): a url() inside a custom property resolves relative to the
+   stylesheet that consumes it via var() (this file, under assets/), not the
+   HTML page — which breaks resolution against slide_images/ at the output
+   root. */
+.bg-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+
+.slide-content {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.slide h1 {
+  font-size: 3rem;
+  margin: 0 0 0.3em 0;
+  color: var(--accent);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.slide h2.kicker {
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--fg-muted);
+  margin: 0 0 0.5em 0;
+  font-weight: 500;
+}
+
+.slide-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 4vw;
+  min-height: 0;
+}
+
+.slide-body.stacked {
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+}
+
+.text-col {
+  flex: 2;
+  min-width: 0;
+}
+
+.media-col {
+  flex: 3;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+ul.bullets {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 1.6rem;
+  line-height: 1.55;
+}
+
+ul.bullets li {
+  position: relative;
+  padding-left: 1.4em;
+  margin-bottom: 0.6em;
+}
+
+ul.bullets li::before {
+  content: "\25AA";
+  color: var(--accent);
+  position: absolute;
+  left: 0;
+  top: 0.05em;
+  font-size: 0.9em;
+}
+
+ul.bullets ul {
+  list-style: none;
+  margin: 0.4em 0 0 0;
+  padding: 0;
+  font-size: 0.85em;
+  color: var(--fg-muted);
+}
+
+ul.bullets ul li::before {
+  content: "\2013";
+  color: var(--fg-muted);
+}
+
+/* blockquotes (> in the body) - same grey callout treatment as .formula-box */
+.text-col blockquote,
+.slide-body.stacked > blockquote {
+  margin: 0.8em 0;
+  padding: 0.8em 1.4em;
+  background: var(--bg-panel);
+  border-left: 4px solid var(--accent);
+  border-radius: 6px;
+  font-style: italic;
+  font-size: 1.6rem;
+  color: var(--fg-muted);
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.text-col blockquote p,
+.slide-body.stacked > blockquote p {
+  margin: 0;
+}
+
+.text-col blockquote p + p,
+.slide-body.stacked > blockquote p + p {
+  margin-top: 0.6em;
+}
+
+/* image placeholders */
+.placeholder {
+  width: 100%;
+  height: 100%;
+  min-height: 220px;
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  background: var(--bg-panel);
+  color: var(--fg-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 1.1rem;
+  font-style: italic;
+  padding: 2em;
+}
+
+.media-col img,
+.media-col video {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 10px;
+  object-fit: contain;
+}
+
+/* single image + optional caption label */
+.media-item {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6em;
+}
+
+.media-item img {
+  flex: 1;
+  min-height: 0;
+}
+
+/* two-image pair: stacked or side-by-side, chosen at build time from aspect ratio */
+.image-pair {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  gap: 1.2em;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-pair.stack {
+  flex-direction: column;
+}
+
+.image-pair.side {
+  flex-direction: row;
+}
+
+.image-pair-item {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.image-pair-item img {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* split panels */
+.split-panels {
+  display: flex;
+  gap: 3vw;
+  width: 100%;
+  height: 100%;
+}
+
+.split-panels > .panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1em;
+  min-width: 0;
+  height: 100%;
+}
+
+.split-panels .panel-media {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.split-panels .panel-media img,
+.split-panels .panel-media .placeholder {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.panel-label {
+  font-size: 1.1rem;
+  color: var(--fg-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  flex-shrink: 0;
+}
+
+/* title slide */
+.title-slide .slide-content {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.title-slide h1 {
+  font-size: 4.2rem;
+  margin-bottom: 0.2em;
+}
+
+/* full-bleed image slide */
+.image-slide .slide-content {
+  justify-content: flex-end;
+}
+
+.image-caption {
+  align-self: flex-start;
+  max-width: 65%;
+  background: rgba(26, 29, 35, 0.78);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1em 1.6em;
+  backdrop-filter: blur(4px);
+}
+
+.image-caption h1 {
+  margin: 0;
+}
+
+.image-caption h2.kicker {
+  margin: 0 0 0.3em 0;
+}
+
+.title-slide .subtitle {
+  font-size: 1.4rem;
+  color: var(--fg-muted);
+  margin: 0;
+}
+
+.title-panel {
+  background: rgba(26, 29, 35, 0.78);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.6em 3em;
+  backdrop-filter: blur(4px);
+}
+
+.meta {
+  font-size: 1rem;
+  color: var(--fg-muted);
+  margin-top: 0.8em;
+}
+
+/* formula */
+.formula-box {
+  margin-top: 1.2em;
+  padding: 1em 1.4em;
+  background: var(--bg-panel);
+  border-left: 4px solid var(--accent);
+  border-radius: 6px;
+  font-size: 1.4rem;
+  overflow-x: auto;
+}
+
+.formula-note {
+  font-size: 0.95rem;
+  color: var(--fg-muted);
+  margin-top: 0.6em;
+  font-style: italic;
+}
+
+/* nav */
+.nav-zone {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 8%;
+  z-index: 5;
+  cursor: pointer;
+}
+
+.nav-zone.prev { left: 0; }
+.nav-zone.next { right: 0; }
+
+.slide-counter {
+  position: absolute;
+  bottom: 1.2em;
+  right: 1.6em;
+  font-size: 0.95rem;
+  color: var(--fg-muted);
+  letter-spacing: 0.05em;
+  z-index: 10;
+}
+
+.slide-counter .current {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* katex sizing */
+.katex { font-size: 1.3em; }
+
+/* click-to-zoom */
+.slide-content img {
+  cursor: zoom-in;
+}
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 5vh 5vw;
+  background: rgba(10, 11, 14, 0.92);
+  z-index: 100;
+  cursor: zoom-out;
+}
+
+.lightbox.active {
+  display: flex;
+}
+
+.lightbox img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  cursor: zoom-in;
+  transition: transform 0.15s ease;
+}
+
+.lightbox img.zoomed {
+  cursor: zoom-out;
+}

@@ -1,0 +1,41 @@
+{%- if slide.kicker %}<h2 class="kicker">{{ slide.kicker }}</h2>{% endif %}
+{%- if slide.title %}<h1>{{ slide.title }}</h1>{% endif %}
+<div class="slide-body">
+  <div class="text-col">
+    {{ slide.body_html | safe }}
+    {%- if slide.formula_html %}
+    <div class="formula-box">{{ slide.formula_html | safe }}</div>
+    {%- if slide.formula_note %}
+    <p class="formula-note">{{ slide.formula_note }}</p>
+    {%- endif %}
+    {%- endif %}
+  </div>
+  <div class="media-col">
+    {%- if slide.image %}
+    <div class="media-item">
+      <img src="{{ slide.image }}" alt="{{ slide.image_alt }}">
+      {%- if slide.image_label %}<div class="panel-label">{{ slide.image_label }}</div>{% endif %}
+    </div>
+    {%- elif slide.video %}
+    <video src="{{ slide.video }}" controls></video>
+    {%- elif slide.images %}
+    <div class="image-pair {{ slide.image_pair_arrangement }}">
+      {%- for img in slide.images %}
+      <div class="image-pair-item">
+        <img src="{{ img.src }}" alt="{{ img.alt }}">
+        {%- if img.label %}<div class="panel-label">{{ img.label }}</div>{% endif %}
+      </div>
+      {%- endfor %}
+    </div>
+    {%- elif slide.panels %}
+    <div class="split-panels">
+      {%- for panel in slide.panels %}
+      <div class="panel">
+        <div class="panel-media"><img src="{{ panel.image }}" alt="{{ panel.alt }}"></div>
+        {%- if panel.label %}<div class="panel-label">{{ panel.label }}</div>{% endif %}
+      </div>
+      {%- endfor %}
+    </div>
+    {%- endif %}
+  </div>
+</div>

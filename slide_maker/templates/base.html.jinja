@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ deck.page_title }}</title>
+<link rel="stylesheet" href="vendor/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+{% if deck.theme %}
+<style>
+:root {
+{% for key, value in deck.theme.items() %}
+  --{{ key }}: {{ value }};
+{% endfor %}
+}
+</style>
+{% endif %}
+</head>
+<body>
+<div class="deck">
+{% for slide in slides %}
+<section class="slide{% if slide.layout == 'title' %} title-slide{% elif slide.layout == 'image' %} image-slide{% endif %}{% if slide.classes %} {{ slide.classes }}{% endif %}" id="{{ slide.id }}">
+{%- if slide.background %}
+  <div class="bg-layer" style="background-image: url('{{ slide.background }}'); opacity: {{ slide.background_opacity }};{% if slide.layout == 'image' %} background-size: {{ slide.fit }};{% endif %}"{% if slide.layout == 'image' %} role="img" aria-label="{{ slide.image_alt }}"{% else %} aria-hidden="true"{% endif %}></div>
+{%- endif %}
+{%- if slide.notes %}
+  <!-- notes: {{ slide.notes }} -->
+{%- endif %}
+  <div class="slide-content">
+    {% include layout_templates[slide.layout] %}
+  </div>
+</section>
+{% endfor %}
+<div class="nav-zone prev" aria-label="Previous slide"></div>
+<div class="nav-zone next" aria-label="Next slide"></div>
+<div class="slide-counter"><span class="current">1</span> / <span class="total"></span></div>
+</div>
+<div class="lightbox" id="lightbox"><img src="" alt=""></div>
+<script src="vendor/katex/katex.min.js"></script>
+<script src="vendor/katex/auto-render.min.js"></script>
+<script src="assets/script.js"></script>
+</body>
+</html>

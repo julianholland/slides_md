@@ -1,0 +1,6 @@
+{%- if slide.kicker or slide.title %}
+<div class="image-caption">
+  {%- if slide.kicker %}<h2 class="kicker">{{ slide.kicker }}</h2>{% endif %}
+  {%- if slide.title %}<h1>{{ slide.title }}</h1>{% endif %}
+</div>
+{%- endif %}

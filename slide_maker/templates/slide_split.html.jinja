@@ -1,0 +1,12 @@
+{%- if slide.kicker %}<h2 class="kicker">{{ slide.kicker }}</h2>{% endif %}
+{%- if slide.title %}<h1>{{ slide.title }}</h1>{% endif %}
+<div class="slide-body">
+  <div class="split-panels">
+    {%- for panel in slide.panels %}
+    <div class="panel">
+      <div class="panel-media"><img src="{{ panel.image }}" alt="{{ panel.alt }}"></div>
+      {%- if panel.label %}<div class="panel-label">{{ panel.label }}</div>{% endif %}
+    </div>
+    {%- endfor %}
+  </div>
+</div>

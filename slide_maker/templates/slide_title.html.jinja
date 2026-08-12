@@ -1,0 +1,9 @@
+<div class="title-panel">
+  <h1>{{ slide.title }}</h1>
+  {%- if slide.subtitle %}
+  <p class="subtitle">{{ slide.subtitle }}</p>
+  {%- endif %}
+  {%- if slide.author or slide.date %}
+  <p class="meta">{% if slide.author %}{{ slide.author }}{% endif %}{% if slide.author and slide.date %} &middot; {% endif %}{% if slide.date %}{{ slide.date }}{% endif %}</p>
+  {%- endif %}
+</div>
