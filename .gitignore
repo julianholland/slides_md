@@ -6,3 +6,5 @@ dist/
 *_deck/
 *.egg-info/
 .venv/
+docs/_build/
+docs/_static/demo/

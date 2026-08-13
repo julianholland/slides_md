@@ -18,8 +18,20 @@ html, body {
   height: 100%;
   background: var(--bg);
   color: var(--fg);
-  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-family: var(--font-body, "Segoe UI", "Helvetica Neue", Arial, sans-serif);
   overflow: hidden;
+}
+
+/* deck-wide watermark image (theme-driven, optional). Positioned bottom-left,
+   deliberately not bottom-right, since .slide-counter already lives there. */
+.theme-watermark {
+  position: fixed;
+  left: 2vw;
+  bottom: 1.5vh;
+  width: var(--watermark-size, 8%);
+  opacity: var(--watermark-opacity, 0.12);
+  pointer-events: none;
+  z-index: 3;
 }
 
 .deck {

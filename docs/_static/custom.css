@@ -1,0 +1,11 @@
+/* Sizing for the layout-gallery.md live demo-deck iframes. */
+.demo-iframe {
+  display: block;
+  width: 100%;
+  max-width: 900px;
+  height: 640px;
+  margin: 1.2em auto;
+  border: 1px solid #333;
+  border-radius: 8px;
+  background: #111;
+}

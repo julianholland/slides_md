@@ -6,9 +6,17 @@ from dataclasses import dataclass, field
 from datetime import date as date_cls
 
 from .parser import RawSlide, SlideMakerError
+from .themes import THEME_PRESETS
 
 VALID_LAYOUTS = {"title", "content", "stacked", "split", "image"}
 VALID_FITS = {"cover", "contain"}
+
+# Characters that would let a deck.yaml `theme:` override value break out of the
+# `:root { --key: value; }` rule (or the surrounding <style> block) it's rendered
+# into verbatim (see base.html.jinja) — rejected outright rather than escaped,
+# since HTML-escaping doesn't help inside a <style> element (a "raw text"
+# element per the HTML spec: browsers never decode entities there).
+_UNSAFE_THEME_VALUE_CHARS = ("<", ">", "{", "}", ";", "\n")
 
 KNOWN_FIELDS = {
     "layout", "title", "kicker", "subtitle", "author", "date",
@@ -56,14 +64,52 @@ class DeckConfig:
     page_title: str = "Slides"
     default_author: str | None = None
     theme: dict = field(default_factory=dict)
+    theme_font_body: str | None = None
+    theme_watermark: str | None = None
+    theme_watermark_opacity: float = 0.12
+    theme_watermark_size: float = 0.08
 
 
 def build_deck_config(raw: dict) -> DeckConfig:
-    return DeckConfig(
-        page_title=raw.get("title", "Slides"),
-        default_author=raw.get("default_author"),
-        theme=raw.get("theme") or {},
-    )
+    page_title = raw.get("title", "Slides")
+    default_author = raw.get("default_author")
+    theme_raw = raw.get("theme")
+
+    if theme_raw is None:
+        # No theme opt-in at all: leave every theme field at its default (falsy/None)
+        # so base.html.jinja emits no <style> override block and no watermark —
+        # byte-identical to decks built before theming existed.
+        return DeckConfig(page_title=page_title, default_author=default_author)
+
+    if isinstance(theme_raw, str):
+        preset = THEME_PRESETS.get(theme_raw)
+        if preset is None:
+            raise SlideMakerError(
+                f"unknown theme {theme_raw!r} in deck.yaml; available: {sorted(THEME_PRESETS)}"
+            )
+        watermark = f"assets/{preset.watermark}" if preset.watermark else None
+        return DeckConfig(
+            page_title=page_title,
+            default_author=default_author,
+            theme=dict(preset.colors),
+            theme_font_body=preset.font_body,
+            theme_watermark=watermark,
+            theme_watermark_opacity=preset.watermark_opacity,
+            theme_watermark_size=preset.watermark_size,
+        )
+
+    if isinstance(theme_raw, dict):
+        # Pre-existing free-form override: a flat dict of CSS custom-property
+        # overrides layered on style.css's own defaults, unrelated to any preset.
+        for key, value in theme_raw.items():
+            if not isinstance(value, str) or any(ch in value for ch in _UNSAFE_THEME_VALUE_CHARS):
+                raise SlideMakerError(
+                    f"deck.yaml theme override {key!r} must be a plain string with no "
+                    "<, >, {, }, ; or newline characters"
+                )
+        return DeckConfig(page_title=page_title, default_author=default_author, theme=theme_raw)
+
+    raise SlideMakerError("deck.yaml 'theme' must be a preset name (string) or a mapping of CSS overrides")
 
 
 def _check_opacity(fm: dict, idx: int, strict: bool, warnings: list[str]) -> float:

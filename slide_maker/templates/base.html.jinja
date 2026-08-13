@@ -6,18 +6,28 @@
 <title>{{ deck.page_title }}</title>
 <link rel="stylesheet" href="vendor/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
-{% if deck.theme %}
+{% if deck.theme or deck.theme_font_body %}
 <style>
 :root {
 {% for key, value in deck.theme.items() %}
   --{{ key }}: {{ value }};
 {% endfor %}
+{% if deck.theme_font_body %}
+  --font-body: {{ deck.theme_font_body | safe }};
+{% endif %}
+{% if deck.theme_watermark %}
+  --watermark-opacity: {{ deck.theme_watermark_opacity }};
+  --watermark-size: {{ deck.theme_watermark_size }};
+{% endif %}
 }
 </style>
 {% endif %}
 </head>
 <body>
 <div class="deck">
+{% if deck.theme_watermark %}
+<img class="theme-watermark" src="{{ deck.theme_watermark }}" alt="" aria-hidden="true">
+{% endif %}
 {% for slide in slides %}
 <section class="slide{% if slide.layout == 'title' %} title-slide{% elif slide.layout == 'image' %} image-slide{% endif %}{% if slide.classes %} {{ slide.classes }}{% endif %}" id="{{ slide.id }}">
 {%- if slide.background %}

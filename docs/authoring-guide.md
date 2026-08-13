@@ -1,21 +1,4 @@
-# slide_maker
-
-Turn a single Markdown file into a static HTML slide deck. No client-side framework —
-just the same vanilla HTML/CSS/JS approach as the hand-built [`sulfur_slides`](../sulfur_slides)
-deck it's based on: a dark theme, keyboard/click navigation, click-to-zoom images, and
-vendored KaTeX for math, with no build step or CDN dependency in the output.
-
-## Quickstart
-
-```bash
-pip install -e .
-python -m slide_maker build examples/demo/slides.md -o build/demo --serve
-```
-
-This builds `build/demo/index.html` (plus `assets/`, `vendor/katex/`, and
-`slide_images/`) and serves it at `http://localhost:8000`.
-
-## Authoring format
+# Authoring Guide
 
 Write one Markdown file (e.g. `slides.md`). Slides are separated by a line containing
 exactly `+++`. Each slide has YAML frontmatter (fenced by `---`/`---`) followed by a
@@ -53,17 +36,19 @@ matching the KaTeX formula box style). Don't use Markdown headings or `![]()` im
 the body — use the `title`/`kicker`/`image` fields instead (the generator warns if it
 sees either).
 
-### Layouts
+## Layouts
 
-| `layout`  | What it renders |
+See {doc}`layout-gallery` for a live example of each of these.
+
+| `layout` | What it renders |
 |---|---|
-| `title`   | Centered title over a full-bleed background, in a translucent panel, with optional `subtitle`, `author`, `date` |
+| `title` | Centered title over a full-bleed background, in a translucent panel, with optional `subtitle`, `author`, `date` |
 | `content` | `title`/`kicker` + bullets on the left, a single `image`, two `images`, `video`, or `panels` comparison on the right (default layout) |
 | `stacked` | `title`/`kicker` + full-width bullets, no media column — also where block math (`formula`) usually goes |
-| `split`   | `title`/`kicker` + a full-width row of 2-3 `panels` (image + caption), no bullets |
-| `image`   | A single `image` fills the entire slide edge-to-edge, sized via `fit` (`contain`, default — fit to screen, no cropping; or `cover` — fill the screen, cropping if needed); `title`/`kicker` are optional, shown as a small overlay panel — omit both for a bare full-slide image |
+| `split` | `title`/`kicker` + a full-width row of 2-3 `panels` (image + caption), no bullets |
+| `image` | A single `image` fills the entire slide edge-to-edge, sized via `fit` (`contain`, default — fit to screen, no cropping; or `cover` — fill the screen, cropping if needed); `title`/`kicker` are optional, shown as a small overlay panel — omit both for a bare full-slide image |
 
-### Per-slide fields
+## Per-slide fields
 
 | field | applies to | notes |
 |---|---|---|
@@ -98,7 +83,7 @@ the screen. Inside the lightbox, click the image (or scroll the mouse wheel over
 zoom in further, centered on the cursor; click again to zoom back out. Click the dark
 backdrop or press `Escape` to close.
 
-### Deck-wide config (optional)
+## Deck-wide config (`deck.yaml`, optional)
 
 A `deck.yaml` file next to your `.md` file (or passed via `--config`) sets page-wide
 defaults:
@@ -106,51 +91,32 @@ defaults:
 ```yaml
 title: My Presentation      # <title> tag
 default_author: Jane Doe    # used when a title slide omits `author`
-theme: alomancy              # named preset — see below
+theme: alomancy              # named preset -- see below
 ```
+
+### Themes
 
 `theme:` accepts either of two forms:
 
-- **A named preset** (a single string) — swaps colors, the body font, and an optional
-  watermark image in one line. Shipped presets:
+**A named preset** (a single string) — swaps colors, the body font, and an optional
+watermark image in one line. Shipped presets:
 
-  | Preset | Look |
-  |---|---|
-  | `default` | The original dark/gold theme (used automatically if `theme:` is omitted — no visual change either way) |
-  | `alomancy` | Dark, with ALomancy's brand violet (`#6C2FBE`) as the accent, the "Inter" font, and a subtle ALomancy logo watermark in the bottom-left corner of every slide |
+| Preset | Look |
+|---|---|
+| `default` | The original dark/gold theme (used automatically if `theme:` is omitted — no visual change either way) |
+| `alomancy` | Dark, with ALomancy's brand violet (`#6C2FBE`) as the accent, the "Inter" font, and a subtle ALomancy logo watermark in the bottom-left corner of every slide |
 
-  New presets are added by registering a `ThemeDefinition` in `slide_maker/themes.py` — see
-  that module for the fields (`colors`, `font_body`, `watermark`).
+New presets are added by registering a `ThemeDefinition` in `slide_maker/themes.py` — see
+{doc}`api/schema` and {doc}`api/build` for how a resolved theme flows into a build; no
+other file needs to change to add one.
 
-- **A raw dict of CSS custom-property overrides** (the original form, still fully
-  supported) — layers only the keys you set on top of `assets/style.css`'s own defaults,
-  independent of any preset:
-  ```yaml
-  theme:
-    accent: "#4cc9f0"
-  ```
-  Overridable keys: `bg`, `bg-panel`, `fg`, `fg-muted`, `accent`, `accent-dim`, `border`.
+**A raw dict of CSS custom-property overrides** (the original form, still fully
+supported) — layers only the keys you set on top of `assets/style.css`'s own defaults,
+independent of any preset:
 
-## CLI
-
-```
-python -m slide_maker build <input.md> -o <output_dir>
-  [--config deck.yaml]        # default: deck.yaml next to input, if present
-  [--images-dir DIR]          # default: input file's directory
-  [--strict]                  # promote warnings (missing image_alt, unknown fields, etc.) to errors
-  [--force]                   # overwrite a non-empty output directory
-  [--serve]                   # serve the output with `python3 -m http.server` after building
+```yaml
+theme:
+  accent: "#4cc9f0"
 ```
 
-Only images actually referenced by a slide are copied into `<output>/slide_images/`.
-A missing referenced image is always a build error, `--strict` or not.
-
-## Development
-
-```bash
-pip install -e ".[dev]"
-pytest
-```
-
-`examples/demo/slides.md` exercises all five layouts, background alpha, and KaTeX —
-useful as both a smoke test and a syntax reference.
+Overridable keys: `bg`, `bg-panel`, `fg`, `fg-muted`, `accent`, `accent-dim`, `border`.

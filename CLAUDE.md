@@ -95,6 +95,23 @@ applied as an inline style override in `base.html.jinja` only when `slide.layout
 before this field existed). Schema validation warns (errors under `--strict`) if `fit` is
 set on any other layout, since it's a no-op there.
 
+**Themes** (`slide_maker/themes.py`): a small registry (`THEME_PRESETS`, plain dict, same
+idiom as `layouts.py`'s `TEMPLATE_BY_LAYOUT`) of named `ThemeDefinition`s (colors, a body
+font, an optional watermark image). `schema.build_deck_config` resolves `deck.yaml`'s
+`theme:` field: a string names a preset (`theme: alomancy`); a dict is the original
+free-form CSS-override form, unrelated to any preset (kept byte-for-byte backward
+compatible — only the keys given are emitted, nothing merged from a preset); omitting
+`theme:` entirely emits no `<style>` override block and no watermark at all, identical to
+output from before theming existed. The watermark image is subject to the same CSS trap
+as `background` (above) — its `src` is a literal inline `<img>` in `base.html.jinja`, not
+routed through `var()` in `style.css`. `deck.theme_font_body` is rendered with Jinja's
+`| safe` filter (it only ever comes from a code-defined `ThemeDefinition`, never user
+YAML) since Jinja's HTML-autoescaping would otherwise turn the font stack's `"`
+characters into `&#34;` entities that a `<style>` block (a "raw text" element) never
+decodes back; raw dict override *values*, which do come from user YAML, are validated
+instead (rejecting `<`, `>`, `{`, `}`, `;`, newlines) rather than marked safe, since they
+could otherwise break out of the `:root { ... }` rule.
+
 **Validation** (`schema.py`): most bad frontmatter is fatal immediately (wrong
 layout-specific field combos, out-of-range `background_opacity`, missing required
 fields); soft issues (missing `image_alt`/`images[].alt`, unknown frontmatter keys) are
