@@ -4,9 +4,23 @@
 pip install -e ".[dev]"
 pytest
 pytest tests/test_build_end_to_end.py::test_build_demo_deck   # run a single test
+ruff check .
 ```
 
-No lint/format tooling is currently configured.
+Ruff is configured in `pyproject.toml`'s `[tool.ruff]` (pyflakes + import ordering — a
+modest baseline, not a full style/type-annotation ruleset). No formatter is configured.
+
+## CI
+
+`.github/workflows/ci.yml` runs on every push and pull request:
+
+- **test** — `pytest`, matrixed across Python 3.10, 3.11, 3.12
+- **lint** — `ruff check .`
+- **docs** — `sphinx-build -W` (a docs build with any warning promoted to a hard error)
+
+Read the Docs builds separately from this CI (tolerating warnings, per
+`.readthedocs.yaml`'s `fail_on_warning: false`) — the `docs` CI job is a stricter local
+gate that catches doc breakage before it ever reaches RTD.
 
 `examples/demo/slides.md` exercises all five layouts, background alpha, image pairs, and
 KaTeX in one deck, and doubles as the primary integration-test fixture

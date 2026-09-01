@@ -1,5 +1,7 @@
 # slide_maker
 
+[![CI](https://github.com/julianholland/slides_md/actions/workflows/ci.yml/badge.svg)](https://github.com/julianholland/slides_md/actions/workflows/ci.yml)
+
 Turn a single Markdown file into a static HTML slide deck. No client-side framework —
 just the same vanilla HTML/CSS/JS approach as the hand-built [`sulfur_slides`](../sulfur_slides)
 deck it's based on: a dark theme, keyboard/click navigation, click-to-zoom images, and
@@ -53,6 +55,11 @@ matching the KaTeX formula box style). Don't use Markdown headings or `![]()` im
 the body — use the `title`/`kicker`/`image` fields instead (the generator warns if it
 sees either).
 
+Anything wrapped in `<!-- ... -->` (or `<!--- ... --->`) is stripped before the file is
+even split into slides, so it's never parsed or rendered — comment out a note-to-self
+inside a slide's body, a YAML field, or a whole slide (fences included) and it's simply
+gone from the build.
+
 ### Layouts
 
 | `layout`  | What it renders |
@@ -73,7 +80,7 @@ sees either).
 | `subtitle` | title | |
 | `author` | title | falls back to `deck.yaml`'s `default_author` |
 | `date` | title | literal string, or `today` to fill in the build date |
-| `image` / `image_alt` / `image_label` | content, image | on `content`, a boxed image with an optional caption `image_label` (mutually exclusive with `video`/`panels`/`images`); on `image`, the full-bleed slide image (required, mutually exclusive with `background`) |
+| `image` / `image_alt` / `image_label` | content, image | on `content`, a boxed image with an optional caption `image_label` (mutually exclusive with `video`/`panels`/`images`); on `image`, the full-bleed slide image (required, mutually exclusive with `background`). Accepts a placeholder name (see below) in place of a real path |
 | `images` | content | exactly 2 `{image, label?, alt?}`; auto-arranged stacked or side-by-side from aspect ratio (mutually exclusive with `image`/`video`/`panels`) |
 | `video` | content | mutually exclusive with `image`/`panels`/`images` |
 | `panels` | content, split | list of `{image, label, alt?}`; required for `split` |
@@ -97,6 +104,16 @@ Every rendered `<img>` is click-to-zoom — clicking it opens a full-screen ligh
 the screen. Inside the lightbox, click the image (or scroll the mouse wheel over it) to
 zoom in further, centered on the cursor; click again to zoom back out. Click the dark
 backdrop or press `Escape` to close.
+
+### Placeholder images
+
+Any `image` (on `content` or `image` layouts), `background`, or `images`/`panels` entry
+accepts a LaTeX-`mwe`-style placeholder name instead of a real file path — no image asset
+needed while drafting: `example-image` (a plain outlined box) or `example-image-a`
+through `example-image-z` (the same box with that letter in it, e.g. `example-image-c`).
+These are bundled with the package and copied into the build like any other referenced
+image. Omitted `alt` text is auto-filled (e.g. "Placeholder image C"), so no warning
+fires for a placeholder left without one.
 
 ### Deck-wide config (optional)
 
@@ -140,17 +157,26 @@ python -m slide_maker build <input.md> -o <output_dir>
   [--strict]                  # promote warnings (missing image_alt, unknown fields, etc.) to errors
   [--force]                   # overwrite a non-empty output directory
   [--serve]                   # serve the output with `python3 -m http.server` after building
+  [--pdf PATH]                # also export a PDF (one page per slide) to PATH, via headless Chromium
 ```
 
 Only images actually referenced by a slide are copied into `<output>/slide_images/`.
 A missing referenced image is always a build error, `--strict` or not.
+
+`--pdf` requires the `pdf` extra (`pip install -e ".[pdf]"`) plus a one-time
+`playwright install chromium` to download the browser.
 
 ## Development
 
 ```bash
 pip install -e ".[dev]"
 pytest
+ruff check .
 ```
+
+CI (`.github/workflows/ci.yml`) runs tests (Python 3.10-3.12), `ruff check`, and a docs
+build with warnings promoted to errors on every push/PR — see `docs/contributing.md` for
+details.
 
 `examples/demo/slides.md` exercises all five layouts, background alpha, and KaTeX —
 useful as both a smoke test and a syntax reference.

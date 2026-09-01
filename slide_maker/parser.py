@@ -10,6 +10,9 @@ import yaml
 
 SLIDE_SEP_RE = re.compile(r"(?m)^\+\+\+\s*$")
 FRONTMATTER_RE = re.compile(r"\A---\s*\n(.*?\n)---\s*\n?(.*)\Z", re.DOTALL)
+# `<!-- ... -->` (and the `<!--- ... --->` variant) — stripped before anything else, so a
+# commented-out slide (its `---`/`+++` fences included) is simply never parsed.
+COMMENT_RE = re.compile(r"<!-{2,}.*?-{2,}>", re.DOTALL)
 
 
 class SlideMakerError(Exception):
@@ -28,8 +31,14 @@ class RawSlide:
     body: str
 
 
+def strip_comments(text: str) -> str:
+    """Remove `<!-- ... -->` blocks (any number of dashes) so their contents never
+    reach frontmatter parsing, slide splitting, or Markdown rendering."""
+    return COMMENT_RE.sub("", text)
+
+
 def parse_slides_file(path: Path) -> list[RawSlide]:
-    text = path.read_text(encoding="utf-8")
+    text = strip_comments(path.read_text(encoding="utf-8"))
     chunks = [c for c in SLIDE_SEP_RE.split(text)]
     # Drop chunks that are purely whitespace (e.g. leading/trailing blank chunk
     # from a file that starts/ends with a `+++` separator).

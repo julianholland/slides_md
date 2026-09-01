@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import date as date_cls
 
+from . import placeholders
 from .parser import RawSlide, SlideMakerError
 from .themes import THEME_PRESETS
 
@@ -170,14 +171,14 @@ def validate_slide(raw_slide: RawSlide, deck: DeckConfig, strict: bool) -> Slide
         warnings.append(msg)
 
     image_alt = fm.get("image_alt", "")
-    if fm.get("image") and not image_alt:
+    if fm.get("image") and not image_alt and not placeholders.resolve_placeholder(fm["image"]):
         msg = "image set without image_alt"
         if strict:
             raise SlideMakerError(msg, slide_index=idx)
         warnings.append(msg)
 
     for i, item in enumerate(images):
-        if not item.alt:
+        if not item.alt and not placeholders.resolve_placeholder(item.image):
             msg = f"images[{i}] set without alt"
             if strict:
                 raise SlideMakerError(msg, slide_index=idx)
@@ -189,7 +190,7 @@ def validate_slide(raw_slide: RawSlide, deck: DeckConfig, strict: bool) -> Slide
         title=fm.get("title"),
         kicker=fm.get("kicker"),
         subtitle=fm.get("subtitle"),
-        author=fm.get("author") or deck.default_author,
+        author=fm["author"] if "author" in fm else deck.default_author,
         date=fm.get("date"),
         image=fm.get("image"),
         image_alt=image_alt,

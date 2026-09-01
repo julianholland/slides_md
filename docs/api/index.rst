@@ -11,4 +11,5 @@ API Reference
    layouts
    build
    imagesize
+   placeholders
    cli

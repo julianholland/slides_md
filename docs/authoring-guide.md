@@ -36,6 +36,11 @@ matching the KaTeX formula box style). Don't use Markdown headings or `![]()` im
 the body — use the `title`/`kicker`/`image` fields instead (the generator warns if it
 sees either).
 
+Anything wrapped in `<!-- ... -->` (or `<!--- ... --->`) is stripped before the file is
+even split into slides, so it's never parsed or rendered — comment out a note-to-self
+inside a slide's body, a YAML field, or a whole slide (fences included) and it's simply
+gone from the build.
+
 ## Layouts
 
 See {doc}`layout-gallery` for a live example of each of these.
@@ -58,7 +63,7 @@ See {doc}`layout-gallery` for a live example of each of these.
 | `subtitle` | title | |
 | `author` | title | falls back to `deck.yaml`'s `default_author` |
 | `date` | title | literal string, or `today` to fill in the build date |
-| `image` / `image_alt` / `image_label` | content, image | on `content`, a boxed image with an optional caption `image_label` (mutually exclusive with `video`/`panels`/`images`); on `image`, the full-bleed slide image (required, mutually exclusive with `background`) |
+| `image` / `image_alt` / `image_label` | content, image | on `content`, a boxed image with an optional caption `image_label` (mutually exclusive with `video`/`panels`/`images`); on `image`, the full-bleed slide image (required, mutually exclusive with `background`). Accepts a placeholder name (see below) in place of a real path |
 | `images` | content | exactly 2 `{image, label?, alt?}`; auto-arranged stacked or side-by-side from aspect ratio (mutually exclusive with `image`/`video`/`panels`) |
 | `video` | content | mutually exclusive with `image`/`panels`/`images` |
 | `panels` | content, split | list of `{image, label, alt?}`; required for `split` |
@@ -82,6 +87,17 @@ Every rendered `<img>` is click-to-zoom — clicking it opens a full-screen ligh
 the screen. Inside the lightbox, click the image (or scroll the mouse wheel over it) to
 zoom in further, centered on the cursor; click again to zoom back out. Click the dark
 backdrop or press `Escape` to close.
+
+## Placeholder images
+
+Any `image` (on `content` or `image` layouts), `background`, or `images`/`panels` entry
+accepts a LaTeX-`mwe`-style placeholder name instead of a real file path — no image asset
+needed while drafting: `example-image` (a plain outlined box) or `example-image-a`
+through `example-image-z` (the same box with that letter in it, e.g. `example-image-c`).
+These are bundled with the package (`slide_maker/placeholder_images/`, produced by
+`scripts/generate_placeholders.py`) and copied into the build like any other referenced
+image. Omitted `alt` text is auto-filled (e.g. "Placeholder image C"), so no warning
+fires for a placeholder left without one.
 
 ## Deck-wide config (`deck.yaml`, optional)
 

@@ -22,6 +22,7 @@ image_label: Figure 1. Build pipeline
   - YAML frontmatter per slide controls layout and media
 - Generator assembles static HTML/CSS/JS
   - No client-side framework, matches the sulfur_slides look
+<!-- TODO: add a bullet about deck.yaml theming here once it's finalized -->
 
 > Blockquotes render as an italic grey callout, matching the KaTeX formula box style
 
@@ -42,6 +43,33 @@ images:
 
 - Two images auto-arrange from their aspect ratio
 - Wide images stack on top of each other; narrow ones sit side by side
+
++++
+
+---
+layout: content
+kicker: Feature
+title: Placeholder Images
+image: example-image-c
+---
+
+- No file needed while drafting — just write `example-image-a` .. `example-image-z`
+- Renders a lettered placeholder box, auto-copied into the build
+
++++
+
+<!--
+A whole slide can be commented out too — this draft never reaches the build:
+
++++
+
+---
+layout: content
+title: Draft slide, not ready yet
+---
+
+- Not finished
+-->
 
 +++
 

@@ -1,4 +1,8 @@
-from slide_maker.render import check_unsupported_body_syntax, render_body, render_formula
+from slide_maker.render import (
+    check_unsupported_body_syntax,
+    render_body,
+    render_formula,
+)
 
 
 def test_only_top_level_ul_gets_bullets_class():

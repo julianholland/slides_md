@@ -7,6 +7,7 @@ from pathlib import Path
 
 from .build import build, print_warnings
 from .parser import SlideMakerError
+from .pdf import export_pdf
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -21,6 +22,7 @@ def main(argv: list[str] | None = None) -> int:
     build_parser.add_argument("--strict", action="store_true", help="Treat warnings as errors")
     build_parser.add_argument("--force", action="store_true", help="Overwrite a non-empty output directory")
     build_parser.add_argument("--serve", action="store_true", help="Serve the output directory with python3 -m http.server after building")
+    build_parser.add_argument("--pdf", type=Path, default=None, help="Also export a PDF (one page per slide) to this path")
 
     args = parser.parse_args(argv)
 
@@ -40,6 +42,14 @@ def main(argv: list[str] | None = None) -> int:
 
         print_warnings(result.warnings)
         print(f"built {result.slide_count} slide(s) -> {result.output_dir}/index.html")
+
+        if args.pdf:
+            try:
+                export_pdf(result.output_dir, args.pdf)
+            except SlideMakerError as exc:
+                print(f"error: {exc}", file=sys.stderr)
+                return 1
+            print(f"exported PDF -> {args.pdf}")
 
         if args.serve:
             subprocess.run(["python3", "-m", "http.server"], cwd=result.output_dir, check=False)

@@ -27,11 +27,11 @@ def test_build_demo_deck(tmp_path):
     out = tmp_path / "out"
     result = build(input_path=DEMO_DIR / "slides.md", output_dir=out)
 
-    assert result.slide_count == 7
+    assert result.slide_count == 8
     assert result.warnings == []
 
     html = (out / "index.html").read_text()
-    assert html.count('<section class="slide') == 7
+    assert html.count('<section class="slide') == 8
 
     # title bg + alpha content-slide bg + full-bleed image-layout slide
     assert html.count('class="bg-layer"') == 3
@@ -49,9 +49,17 @@ def test_build_demo_deck(tmp_path):
     script = (out / "assets" / "script.js").read_text()
     assert "setZoom" in script  # click/wheel zoom inside the opened lightbox
 
+    assert 'src="slide_images/example-image-c.png"' in html
+    assert 'alt="Placeholder image C"' in html
+
+    # <!-- --> comments are stripped: an inline note and a whole commented-out
+    # draft slide (which would otherwise make this 9 slides, not 8)
+    assert "TODO" not in html
+    assert "Draft slide, not ready yet" not in html
+
     images = sorted(p.name for p in (out / "slide_images").iterdir())
     assert images == [
-        "after.png", "before.png", "diagram.png", "hero.jpg",
+        "after.png", "before.png", "diagram.png", "example-image-c.png", "hero.jpg",
         "screenshot_a.png", "screenshot_b.png", "watermark.png",
     ]
 
@@ -227,6 +235,78 @@ def test_images_missing_alt_warns(tmp_path):
     result = build(input_path=src, output_dir=tmp_path / "out")
     assert any("images[0]" in w for w in result.warnings)
     assert any("images[1]" in w for w in result.warnings)
+
+
+def test_placeholder_image_needs_no_real_file(tmp_path):
+    src = tmp_path / "slides.md"
+    src.write_text("---\nlayout: content\ntitle: A\nimage: example-image-a\n---\nbody\n")
+
+    result = build(input_path=src, output_dir=tmp_path / "out")
+    assert result.warnings == []  # placeholder auto-supplies alt text, no warning
+
+    html = (tmp_path / "out" / "index.html").read_text()
+    assert 'src="slide_images/example-image-a.png"' in html
+    assert 'alt="Placeholder image A"' in html
+    assert (tmp_path / "out" / "slide_images" / "example-image-a.png").is_file()
+
+
+def test_placeholder_explicit_alt_wins(tmp_path):
+    src = tmp_path / "slides.md"
+    src.write_text(
+        "---\nlayout: content\ntitle: A\nimage: example-image-a\nimage_alt: My own caption\n---\nbody\n"
+    )
+    result = build(input_path=src, output_dir=tmp_path / "out")
+    assert result.warnings == []
+    html = (tmp_path / "out" / "index.html").read_text()
+    assert 'alt="My own caption"' in html
+
+
+def test_placeholder_bare_example_image(tmp_path):
+    src = tmp_path / "slides.md"
+    src.write_text("---\nlayout: image\nimage: example-image\n---\n")
+    result = build(input_path=src, output_dir=tmp_path / "out")
+    assert result.warnings == []
+    html = (tmp_path / "out" / "index.html").read_text()
+    assert "background-image: url('slide_images/example-image.png')" in html
+    assert 'aria-label="Placeholder image"' in html
+
+
+def test_placeholder_in_images_pair(tmp_path):
+    src = tmp_path / "slides.md"
+    src.write_text(
+        "---\nlayout: content\ntitle: Pair\n"
+        "images:\n  - image: example-image-a\n  - image: example-image-b\n---\nbody\n"
+    )
+    result = build(input_path=src, output_dir=tmp_path / "out")
+    assert result.warnings == []
+    html = (tmp_path / "out" / "index.html").read_text()
+    assert 'src="slide_images/example-image-a.png"' in html
+    assert 'src="slide_images/example-image-b.png"' in html
+    assert 'alt="Placeholder image A"' in html
+    assert 'alt="Placeholder image B"' in html
+
+
+def test_placeholder_in_split_panels(tmp_path):
+    src = tmp_path / "slides.md"
+    src.write_text(
+        "---\nlayout: split\ntitle: Panels\n"
+        "panels:\n  - image: example-image-a\n    label: Before\n"
+        "  - image: example-image-b\n    label: After\n---\n"
+    )
+    result = build(input_path=src, output_dir=tmp_path / "out")
+    assert result.warnings == []
+    html = (tmp_path / "out" / "index.html").read_text()
+    assert 'alt="Placeholder image A"' in html
+    assert 'alt="Placeholder image B"' in html
+
+
+def test_placeholder_not_confused_with_real_missing_file(tmp_path):
+    src = tmp_path / "slides.md"
+    src.write_text(
+        "---\nlayout: content\ntitle: A\nimage: example-image-1\nimage_alt: x\n---\nbody\n"
+    )
+    with pytest.raises(SlideMakerError, match="referenced image not found"):
+        build(input_path=src, output_dir=tmp_path / "out")
 
 
 def test_image_layout_requires_image_field(tmp_path):

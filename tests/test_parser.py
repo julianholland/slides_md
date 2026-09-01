@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from slide_maker.parser import SlideMakerError, parse_slides_file
+from slide_maker.parser import SlideMakerError, parse_slides_file, strip_comments
 
 
 def write(tmp_path: Path, text: str) -> Path:
@@ -69,3 +69,60 @@ def test_empty_file_raises(tmp_path):
     path = write(tmp_path, "\n\n")
     with pytest.raises(SlideMakerError):
         parse_slides_file(path)
+
+
+def test_strip_comments_basic():
+    assert strip_comments("before <!-- hidden --> after") == "before  after"
+
+
+def test_strip_comments_triple_dash_variant():
+    assert strip_comments("before <!--- hidden ---> after") == "before  after"
+
+
+def test_strip_comments_multiline():
+    text = "before\n<!--\nall of\nthis is hidden\n-->\nafter"
+    assert strip_comments(text) == "before\n\nafter"
+
+
+def test_strip_comments_multiple_blocks():
+    text = "a <!-- one --> b <!-- two --> c"
+    assert strip_comments(text) == "a  b  c"
+
+
+def test_comment_in_slide_body_is_removed(tmp_path):
+    path = write(
+        tmp_path,
+        "---\nlayout: content\ntitle: A\n---\nvisible text\n<!-- hidden bullet -->\nmore visible text\n",
+    )
+    slides = parse_slides_file(path)
+    assert len(slides) == 1
+    assert "hidden bullet" not in slides[0].body
+    assert "visible text" in slides[0].body
+    assert "more visible text" in slides[0].body
+
+
+def test_commented_out_slide_is_never_parsed(tmp_path):
+    path = write(
+        tmp_path,
+        "---\nlayout: content\ntitle: A\n---\nbody a\n"
+        "+++\n"
+        "<!--\n"
+        "+++\n"
+        "---\nlayout: content\ntitle: Draft, not ready\n---\nbody b\n"
+        "-->\n"
+        "+++\n"
+        "---\nlayout: content\ntitle: C\n---\nbody c\n",
+    )
+    slides = parse_slides_file(path)
+    assert len(slides) == 2
+    assert [s.frontmatter["title"] for s in slides] == ["A", "C"]
+
+
+def test_comment_in_frontmatter_is_removed(tmp_path):
+    path = write(
+        tmp_path,
+        "---\nlayout: content\ntitle: A\n<!-- kicker: Draft -->\n---\nbody\n",
+    )
+    slides = parse_slides_file(path)
+    assert len(slides) == 1
+    assert "kicker" not in slides[0].frontmatter

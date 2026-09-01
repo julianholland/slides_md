@@ -10,7 +10,7 @@ from types import SimpleNamespace
 
 from jinja2 import Environment, FileSystemLoader
 
-from . import imagesize
+from . import imagesize, placeholders
 from . import render as render_mod
 from .layouts import TEMPLATE_BY_LAYOUT
 from .parser import SlideMakerError, load_deck_config, parse_slides_file
@@ -37,9 +37,13 @@ class ImageResolver:
         self._by_basename: dict[str, Path] = {}
 
     def resolve(self, rel_path: str, slide_index: int) -> str:
-        src = (self.images_dir / rel_path).resolve()
-        if not src.is_file():
-            raise SlideMakerError(f"referenced image not found: {rel_path}", slide_index=slide_index)
+        placeholder = placeholders.resolve_placeholder(rel_path)
+        if placeholder is not None:
+            src = placeholder
+        else:
+            src = (self.images_dir / rel_path).resolve()
+            if not src.is_file():
+                raise SlideMakerError(f"referenced image not found: {rel_path}", slide_index=slide_index)
         basename = src.name
         existing = self._by_basename.get(basename)
         if existing is not None and existing != src:
@@ -65,6 +69,12 @@ class ImageResolver:
         dest_dir.mkdir(parents=True, exist_ok=True)
         for basename, src in self._by_basename.items():
             shutil.copy2(src, dest_dir / basename)
+
+
+def _alt_text(explicit: str, source: str, fallback: str = "") -> str:
+    """Explicit alt text wins; a placeholder source (e.g. 'example-image-a') gets a
+    sensible auto-generated alt when none was given; otherwise fall back."""
+    return explicit or placeholders.placeholder_alt(source) or fallback
 
 
 def choose_image_pair_arrangement(ratio_a: float, ratio_b: float) -> str:
@@ -108,15 +118,19 @@ def _slide_context(slide: SlideConfig, resolver: ImageResolver, strict: bool, wa
         dest_b, (wb, hb) = resolver.resolve_with_size(slide.images[1].image, slide.index)
         image_pair_arrangement = choose_image_pair_arrangement(wa / ha, wb / hb)
         images = [
-            SimpleNamespace(src=dest_a, alt=slide.images[0].alt, label=slide.images[0].label),
-            SimpleNamespace(src=dest_b, alt=slide.images[1].alt, label=slide.images[1].label),
+            SimpleNamespace(
+                src=dest_a, alt=_alt_text(slide.images[0].alt, slide.images[0].image), label=slide.images[0].label
+            ),
+            SimpleNamespace(
+                src=dest_b, alt=_alt_text(slide.images[1].alt, slide.images[1].image), label=slide.images[1].label
+            ),
         ]
 
     panels = [
         SimpleNamespace(
             image=resolver.resolve(p.image, slide.index),
             label=p.label,
-            alt=p.alt or p.label,
+            alt=_alt_text(p.alt, p.image, fallback=p.label),
         )
         for p in slide.panels
     ]
@@ -134,7 +148,7 @@ def _slide_context(slide: SlideConfig, resolver: ImageResolver, strict: bool, wa
         author=slide.author,
         date=slide.date,
         image=image,
-        image_alt=slide.image_alt,
+        image_alt=_alt_text(slide.image_alt, slide.image or ""),
         image_label=slide.image_label,
         images=images,
         image_pair_arrangement=image_pair_arrangement,

@@ -43,6 +43,16 @@ cd docs
 make html
 ```
 
+## PDF export
+
+`--pdf` (see `docs/cli.md`) renders the deck via headless Chromium, so it needs its own
+extra plus a one-time browser download:
+
+```bash
+pip install -e ".[pdf]"
+playwright install chromium
+```
+
 Then open `docs/_build/html/index.html` in a browser. This step also regenerates the
 live demo decks used by the {doc}`layout-gallery` page automatically — no separate
 command needed.

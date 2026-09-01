@@ -68,3 +68,22 @@ register_theme(
         watermark_size=0.08,
     )
 )
+
+register_theme(
+    ThemeDefinition(
+        name="neuefische",
+        colors={
+            "bg": "#14012c",
+            "bg-panel": "#440293",
+            "fg": "#feede8",
+            "fg-muted": "#fbb5a2",
+            "accent": "#f44717",  # Neuefische orange, brand primary
+            "accent-dim": "#922b0e",  # STAGE2_COLOR, "darkened brand violet"
+            "border": "#07000f",  # DIAGONAL_COLOR, dark charcoal
+        },
+        font_body='"Poppins", "Nunito Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+        watermark="themes/neuefische/watermark.png",
+        watermark_opacity=0.08,
+        watermark_size=0.05,
+    )
+)

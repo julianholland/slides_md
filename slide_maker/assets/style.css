@@ -443,3 +443,44 @@ ul.bullets ul li::before {
 .lightbox img.zoomed {
   cursor: zoom-out;
 }
+
+/* PDF export: print one slide per page at a fixed 16:9 page size, independent
+   of the vw/vh-relative screen layout (100vh/100vw resolve against @page in
+   print). Un-hides all slides at once instead of just `.active`, since the
+   screen layout only ever shows one via JS class-toggling. */
+@media print {
+  @page {
+    size: 1280px 720px;
+    margin: 0;
+  }
+
+  html, body {
+    height: auto;
+    overflow: visible;
+  }
+
+  .deck {
+    width: auto;
+    height: auto;
+  }
+
+  .nav-zone,
+  .slide-counter,
+  .lightbox {
+    display: none !important;
+  }
+
+  .slide {
+    display: block !important;
+    opacity: 1 !important;
+    position: relative;
+    width: 1280px;
+    height: 720px;
+    overflow: hidden;
+    page-break-after: always;
+  }
+
+  .slide:last-of-type {
+    page-break-after: auto;
+  }
+}
