@@ -15,6 +15,7 @@
     <div class="media-item">
       <img src="{{ slide.image }}" alt="{{ slide.image_alt }}">
       {%- if slide.image_label %}<div class="panel-label">{{ slide.image_label }}</div>{% endif %}
+      {%- if slide.image_reference %}<span class="citation-badge">{% if slide.image_reference.doi_url %}<a href="{{ slide.image_reference.doi_url }}" target="_blank" rel="noopener">{{ slide.image_reference.number }}</a>{% else %}{{ slide.image_reference.number }}{% endif %}</span>{% endif %}
     </div>
     {%- elif slide.video %}
     <video src="{{ slide.video }}" controls></video>
@@ -24,6 +25,7 @@
       <div class="image-pair-item">
         <img src="{{ img.src }}" alt="{{ img.alt }}">
         {%- if img.label %}<div class="panel-label">{{ img.label }}</div>{% endif %}
+        {%- if img.reference %}<span class="citation-badge">{% if img.reference.doi_url %}<a href="{{ img.reference.doi_url }}" target="_blank" rel="noopener">{{ img.reference.number }}</a>{% else %}{{ img.reference.number }}{% endif %}</span>{% endif %}
       </div>
       {%- endfor %}
     </div>
@@ -31,7 +33,10 @@
     <div class="split-panels">
       {%- for panel in slide.panels %}
       <div class="panel">
-        <div class="panel-media"><img src="{{ panel.image }}" alt="{{ panel.alt }}"></div>
+        <div class="panel-media">
+          <img src="{{ panel.image }}" alt="{{ panel.alt }}">
+          {%- if panel.reference %}<span class="citation-badge">{% if panel.reference.doi_url %}<a href="{{ panel.reference.doi_url }}" target="_blank" rel="noopener">{{ panel.reference.number }}</a>{% else %}{{ panel.reference.number }}{% endif %}</span>{% endif %}
+        </div>
         {%- if panel.label %}<div class="panel-label">{{ panel.label }}</div>{% endif %}
       </div>
       {%- endfor %}

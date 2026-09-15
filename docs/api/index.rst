@@ -12,4 +12,9 @@ API Reference
    build
    imagesize
    placeholders
+   phase_in
+   references
+   pdf_images
+   pdf
+   thumbnail
    cli

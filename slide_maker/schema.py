@@ -4,12 +4,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date as date_cls
+from pathlib import Path
 
 from . import placeholders
 from .parser import RawSlide, SlideMakerError
 from .themes import THEME_PRESETS
 
-VALID_LAYOUTS = {"title", "content", "stacked", "split", "image"}
+VALID_LAYOUTS = {"title", "content", "stacked", "split", "image", "references"}
 VALID_FITS = {"cover", "contain"}
 
 # Characters that would let a deck.yaml `theme:` override value break out of the
@@ -23,6 +24,7 @@ KNOWN_FIELDS = {
     "layout", "title", "kicker", "subtitle", "author", "date",
     "image", "image_alt", "image_label", "images", "video", "panels", "background",
     "background_opacity", "fit", "formula", "formula_note", "notes", "id", "classes",
+    "phase_in", "phase_images", "phase_level", "image_reference",
 }
 
 
@@ -31,11 +33,13 @@ class Panel:
     image: str
     label: str = ""
     alt: str = ""
+    reference: str = ""
 
 
 @dataclass
 class SlideConfig:
     index: int
+    display_index: int = 0
     layout: str = "content"
     title: str | None = None
     kicker: str | None = None
@@ -45,6 +49,7 @@ class SlideConfig:
     image: str | None = None
     image_alt: str = ""
     image_label: str | None = None
+    image_reference: str = ""
     images: list[Panel] = field(default_factory=list)
     video: str | None = None
     panels: list[Panel] = field(default_factory=list)
@@ -56,6 +61,12 @@ class SlideConfig:
     notes: str | None = None
     id: str = ""
     classes: str = ""
+    phase_in: bool = False
+    phase_level: int = 1
+    phase_images: list[Panel] = field(default_factory=list)
+    phase_step: int | None = None
+    phase_step_count: int | None = None
+    citation_numbers: list[int] = field(default_factory=list)
     body: str = ""
     warnings: list[str] = field(default_factory=list)
 
@@ -69,18 +80,24 @@ class DeckConfig:
     theme_watermark: str | None = None
     theme_watermark_opacity: float = 0.12
     theme_watermark_size: float = 0.08
+    bibliography_path: Path | None = None
 
 
-def build_deck_config(raw: dict) -> DeckConfig:
+def build_deck_config(raw: dict, config_dir: Path | None = None) -> DeckConfig:
     page_title = raw.get("title", "Slides")
     default_author = raw.get("default_author")
     theme_raw = raw.get("theme")
+
+    bibliography_path = None
+    if raw.get("bibliography"):
+        base = config_dir or Path()
+        bibliography_path = (base / raw["bibliography"]).resolve()
 
     if theme_raw is None:
         # No theme opt-in at all: leave every theme field at its default (falsy/None)
         # so base.html.jinja emits no <style> override block and no watermark —
         # byte-identical to decks built before theming existed.
-        return DeckConfig(page_title=page_title, default_author=default_author)
+        return DeckConfig(page_title=page_title, default_author=default_author, bibliography_path=bibliography_path)
 
     if isinstance(theme_raw, str):
         preset = THEME_PRESETS.get(theme_raw)
@@ -97,6 +114,7 @@ def build_deck_config(raw: dict) -> DeckConfig:
             theme_watermark=watermark,
             theme_watermark_opacity=preset.watermark_opacity,
             theme_watermark_size=preset.watermark_size,
+            bibliography_path=bibliography_path,
         )
 
     if isinstance(theme_raw, dict):
@@ -108,7 +126,9 @@ def build_deck_config(raw: dict) -> DeckConfig:
                     f"deck.yaml theme override {key!r} must be a plain string with no "
                     "<, >, {, }, ; or newline characters"
                 )
-        return DeckConfig(page_title=page_title, default_author=default_author, theme=theme_raw)
+        return DeckConfig(
+            page_title=page_title, default_author=default_author, theme=theme_raw, bibliography_path=bibliography_path
+        )
 
     raise SlideMakerError("deck.yaml 'theme' must be a preset name (string) or a mapping of CSS overrides")
 
@@ -150,12 +170,12 @@ def validate_slide(raw_slide: RawSlide, deck: DeckConfig, strict: bool) -> Slide
         )
 
     panels = [
-        Panel(image=p["image"], label=p.get("label", ""), alt=p.get("alt", ""))
+        Panel(image=p["image"], label=p.get("label", ""), alt=p.get("alt", ""), reference=p.get("reference", ""))
         for p in (fm.get("panels") or [])
     ]
 
     images = [
-        Panel(image=im["image"], label=im.get("label", ""), alt=im.get("alt", ""))
+        Panel(image=im["image"], label=im.get("label", ""), alt=im.get("alt", ""), reference=im.get("reference", ""))
         for im in (fm.get("images") or [])
     ]
 
@@ -184,8 +204,32 @@ def validate_slide(raw_slide: RawSlide, deck: DeckConfig, strict: bool) -> Slide
                 raise SlideMakerError(msg, slide_index=idx)
             warnings.append(msg)
 
+    phase_in = bool(fm.get("phase_in", False))
+    if "phase_in" in fm and layout != "content":
+        raise SlideMakerError("phase_in is only used by layout 'content'", slide_index=idx)
+
+    phase_level = fm.get("phase_level", 1)
+    if not isinstance(phase_level, int) or isinstance(phase_level, bool) or phase_level < 1:
+        raise SlideMakerError("phase_level must be an integer >= 1", slide_index=idx)
+    if "phase_level" in fm and not phase_in:
+        raise SlideMakerError("phase_level set without phase_in", slide_index=idx)
+
+    phase_images = [
+        Panel(image=p["image"], label=p.get("label", ""), alt=p.get("alt", ""), reference=p.get("reference", ""))
+        for p in (fm.get("phase_images") or [])
+    ]
+    if "phase_images" in fm and not phase_in:
+        raise SlideMakerError("phase_images set without phase_in", slide_index=idx)
+    for i, item in enumerate(phase_images):
+        if not item.alt and not placeholders.resolve_placeholder(item.image):
+            msg = f"phase_images[{i}] set without alt"
+            if strict:
+                raise SlideMakerError(msg, slide_index=idx)
+            warnings.append(msg)
+
     slide = SlideConfig(
         index=idx,
+        display_index=idx + 1,
         layout=layout,
         title=fm.get("title"),
         kicker=fm.get("kicker"),
@@ -195,6 +239,7 @@ def validate_slide(raw_slide: RawSlide, deck: DeckConfig, strict: bool) -> Slide
         image=fm.get("image"),
         image_alt=image_alt,
         image_label=fm.get("image_label"),
+        image_reference=fm.get("image_reference", ""),
         images=images,
         video=fm.get("video"),
         panels=panels,
@@ -206,6 +251,9 @@ def validate_slide(raw_slide: RawSlide, deck: DeckConfig, strict: bool) -> Slide
         notes=fm.get("notes"),
         id=fm.get("id") or f"slide-{idx + 1}",
         classes=fm.get("classes", ""),
+        phase_in=phase_in,
+        phase_level=phase_level,
+        phase_images=phase_images,
         body=raw_slide.body,
         warnings=warnings,
     )
@@ -218,9 +266,11 @@ def validate_slide(raw_slide: RawSlide, deck: DeckConfig, strict: bool) -> Slide
             raise SlideMakerError("layout 'title' requires a 'title' field", slide_index=idx)
     elif layout == "content":
         media_fields = [f for f in ("image", "panels", "video", "images") if fm.get(f)]
+        if phase_in:
+            media_fields.append("phase_in")
         if len(media_fields) > 1:
             raise SlideMakerError(
-                "layout 'content' may only set one of image/panels/video/images, got: "
+                "layout 'content' may only set one of image/panels/video/images/phase_in, got: "
                 + ", ".join(media_fields),
                 slide_index=idx,
             )
@@ -229,6 +279,8 @@ def validate_slide(raw_slide: RawSlide, deck: DeckConfig, strict: bool) -> Slide
                 f"'images' currently supports exactly 2 images (got {len(slide.images)})",
                 slide_index=idx,
             )
+        if phase_in and not slide.body.strip():
+            raise SlideMakerError("phase_in requires bullet points in the slide body", slide_index=idx)
     elif layout == "split":
         if not slide.panels:
             raise SlideMakerError("layout 'split' requires a non-empty 'panels' list", slide_index=idx)

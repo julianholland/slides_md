@@ -16,9 +16,10 @@ title: Why a Markdown Slide Tool
 image: images/diagram.png
 image_alt: Diagram of the markdown-to-HTML pipeline
 image_label: Figure 1. Build pipeline
+image_reference: holland2024
 ---
 
-- Author once in a single Markdown file
+- Author once in a single Markdown file [@holland2024]
   - YAML frontmatter per slide controls layout and media
 - Generator assembles static HTML/CSS/JS
   - No client-side framework, matches the sulfur_slides look
@@ -55,6 +56,21 @@ image: example-image-c
 
 - No file needed while drafting — just write `example-image-a` .. `example-image-z`
 - Renders a lettered placeholder box, auto-copied into the build
+
++++
+
+---
+layout: content
+kicker: Feature
+title: Phase-In Reveal
+phase_in: true
+phase_images:
+  - image: example-image-a
+  - image: example-image-b
+---
+
+- Bullets reveal one at a time, dimming as new ones appear
+- The image advances alongside, freezing on the last once exhausted
 
 +++
 
@@ -119,4 +135,11 @@ panels:
     label: Before
   - image: images/after.png
     label: After
+---
+
++++
+
+---
+layout: references
+title: References
 ---

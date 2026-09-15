@@ -8,6 +8,7 @@ python -m slide_maker build <input.md> -o <output_dir>
   [--force]                   # overwrite a non-empty output directory
   [--serve]                   # serve the output with `python3 -m http.server` after building
   [--pdf PATH]                # also export a PDF (one page per slide) to PATH
+  [--thumbnail PATH]          # also export a PNG screenshot of the title slide to PATH
 ```
 
 The same command is also available as the `slide-maker` console script:
@@ -26,3 +27,7 @@ successful build, and blocks until you stop it (`Ctrl+C`).
 output as the source (so it runs after the build, before `--serve`). It requires the
 `pdf` extra: `pip install -e ".[pdf]"` followed by a one-time `playwright install
 chromium` to download the browser binary.
+
+`--thumbnail` screenshots the deck's initial view (slide 1 — the deck always opens
+there) at a 1600x900 viewport, using the same local-serving approach and the same
+`pdf` extra as `--pdf`. Runs after the build and after `--pdf`, before `--serve`.

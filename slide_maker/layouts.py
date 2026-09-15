@@ -8,6 +8,7 @@ TEMPLATE_BY_LAYOUT = {
     "stacked": "slide_stacked.html.jinja",
     "split": "slide_split.html.jinja",
     "image": "slide_image.html.jinja",
+    "references": "slide_references.html.jinja",
 }
 
 

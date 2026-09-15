@@ -9,7 +9,7 @@ from slide_maker.build import build
 DEMO_SRC = Path(__file__).parent / "demo"
 DEMO_OUT = Path(__file__).parent / "_static" / "demo"
 
-DECK_NAMES = ("full", "title", "content", "stacked", "split", "image")
+DECK_NAMES = ("full", "title", "content", "stacked", "split", "image", "phase_in", "references")
 
 
 def build_all_demo_decks() -> None:

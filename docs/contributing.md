@@ -22,8 +22,8 @@ Read the Docs builds separately from this CI (tolerating warnings, per
 `.readthedocs.yaml`'s `fail_on_warning: false`) — the `docs` CI job is a stricter local
 gate that catches doc breakage before it ever reaches RTD.
 
-`examples/demo/slides.md` exercises all five layouts, background alpha, image pairs, and
-KaTeX in one deck, and doubles as the primary integration-test fixture
+`examples/demo/slides.md` exercises all six layouts, background alpha, image pairs,
+citations, and KaTeX in one deck, and doubles as the primary integration-test fixture
 (`tests/test_build_end_to_end.py`) — keep it in sync when adding fields/layouts.
 
 ## How it fits together

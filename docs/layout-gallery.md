@@ -1,6 +1,6 @@
 # Layout Gallery
 
-A live, click/keyboard-navigable example of each of slide_maker's five layouts, built
+A live, click/keyboard-navigable example of each of slide_maker's six layouts, built
 from real figures pulled from an actual research talk (with the talk's own narrative text
 replaced by placeholder copy — the images and the one LaTeX formula below are genuine,
 reused as-is). These decks are rebuilt from source every time these docs are built, so
@@ -75,6 +75,34 @@ images:
 <iframe class="demo-iframe" src="_static/demo/content/index.html" loading="lazy"></iframe>
 ```
 
+## Content: phase-in reveal
+
+`phase_in: true` on a `content` slide steps through its bullets one at a time (each
+step is its own slide for navigation, sharing one number in the counter), optionally
+cycling `phase_images` one per step and freezing on the last once exhausted.
+
+```yaml
+---
+layout: content
+kicker: Lorem Ipsum
+title: Phase-In Reveal Example
+phase_in: true
+phase_images:
+  - image: s_int_band_gap_bar.png
+    alt: Lorem ipsum dolor sit amet
+  - image: new_s_int_band_gap_bar.png
+    alt: Consectetur adipiscing elit
+---
+
+- Lorem ipsum dolor sit amet consectetur adipiscing elit
+- Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+- Ut enim ad minim veniam quis nostrud exercitation ullamco laboris
+```
+
+```{raw} html
+<iframe class="demo-iframe" src="_static/demo/phase_in/index.html" loading="lazy"></iframe>
+```
+
 ## Stacked
 
 `title`/`kicker` + full-width bullets, no media column — also where block math
@@ -130,6 +158,38 @@ panels:
 
 ```{raw} html
 <iframe class="demo-iframe" src="_static/demo/split/index.html" loading="lazy"></iframe>
+```
+
+## Citations & references
+
+Cite a bibliography entry from body text with `[@key]`, or from an image with
+`reference`/`image_reference` — each gets a number in first-cited order, a small
+footnote at the bottom-left of the slide that cited it, and a badge in the image's
+top-right corner. `layout: references` (below) lists the full numbered bibliography.
+
+```markdown
+---
+layout: content
+kicker: Lorem Ipsum
+title: Citations Example
+image: acs_c_to_s_electron_transfer.png
+image_alt: Lorem ipsum dolor sit amet consectetur
+image_reference: amet2018
+---
+
+- Lorem ipsum dolor sit amet [@lorem2021], consectetur adipiscing elit
+- Sed do eiusmod tempor incididunt ut labore [@lorem2021; @amet2018]
+
++++
+
+---
+layout: references
+title: References
+---
+```
+
+```{raw} html
+<iframe class="demo-iframe" src="_static/demo/references/index.html" loading="lazy"></iframe>
 ```
 
 ## Image

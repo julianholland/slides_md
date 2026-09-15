@@ -184,6 +184,47 @@ ul.bullets ul li::before {
   margin-top: 0.6em;
 }
 
+/* phase-in reveal steps (content layout only): a bullet's `data-phase` value is the
+   step it first became visible at (an ancestor bullet is backfilled to match its
+   first revealed child, so both move in lock-step forever). Dimmed = revealed in an
+   earlier step; pending = not revealed yet this step, removed from flow entirely so
+   the list only occupies space for what's actually on screen. */
+.text-col li.phase-dim {
+  opacity: 0.4;
+}
+
+.text-col li.phase-pending {
+  display: none;
+}
+
+/* fenced code blocks - same panel treatment as blockquotes, but monospace and
+   non-wrapping (YAML/shell snippets shouldn't reflow), with their own scrollbar
+   for lines too long to fit */
+.text-col pre,
+.slide-body.stacked > pre {
+  margin: 0.8em 0;
+  padding: 0.8em 1.2em;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow-x: auto;
+}
+
+.text-col pre code,
+.slide-body.stacked > pre code {
+  background: none;
+  padding: 0;
+  font-size: 1.3rem;
+}
+
+/* inline `code` spans (outside a fenced block) */
+code {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  background: var(--bg-panel);
+  border-radius: 4px;
+  padding: 0.1em 0.4em;
+}
+
 /* image placeholders */
 .placeholder {
   width: 100%;
@@ -212,6 +253,7 @@ ul.bullets ul li::before {
 
 /* single image + optional caption label */
 .media-item {
+  position: relative;
   width: 100%;
   height: 100%;
   min-height: 0;
@@ -246,6 +288,7 @@ ul.bullets ul li::before {
 }
 
 .image-pair-item {
+  position: relative;
   flex: 1;
   min-width: 0;
   min-height: 0;
@@ -281,6 +324,7 @@ ul.bullets ul li::before {
 }
 
 .split-panels .panel-media {
+  position: relative;
   flex: 1;
   width: 100%;
   display: flex;
@@ -404,6 +448,75 @@ ul.bullets ul li::before {
 .slide-counter .current {
   color: var(--accent);
   font-weight: 600;
+}
+
+/* citations: a small numbered chip on the image it was called on (top-right of that
+   image's own container -- see the `position: relative` added to .media-item /
+   .image-pair-item / .split-panels .panel-media above) or, for the full-bleed `image`
+   layout (which has no per-image wrapper of its own), on the slide itself. */
+.citation-badge {
+  position: absolute;
+  top: 0.5em;
+  right: 0.5em;
+  background: rgba(26, 29, 35, 0.78);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.1em 0.5em;
+  font-size: 1rem;
+  color: var(--fg);
+  z-index: 2;
+}
+
+.citation-badge a {
+  color: var(--fg);
+  text-decoration: none;
+}
+
+/* per-slide footnotes for whatever was cited on that slide -- the bottom-left mirror
+   of .slide-counter. Known, accepted overlap: a themed deck's bottom-left watermark
+   (.theme-watermark) and this can compete for the same corner on a slide that has
+   both; not specially reconciled. */
+.citation-footnotes {
+  position: absolute;
+  left: 1.6em;
+  bottom: 1.2em;
+  max-width: 55%;
+  font-size: 1rem;
+  line-height: 1.4;
+  color: var(--fg-muted);
+  z-index: 10;
+}
+
+.citation-footnotes a {
+  color: var(--fg-muted);
+}
+
+/* inline [@key] citation markers in body text */
+sup.citation {
+  font-size: 0.75em;
+}
+
+sup.citation a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+/* the `references` layout: full numbered bibliography (combined with
+   .slide-body.stacked for its column layout -- see slide_references.html.jinja) */
+.references-list {
+  gap: 0.6em;
+  font-size: 1.4rem;
+  overflow-y: auto;
+}
+
+.ref-num {
+  color: var(--accent);
+  font-weight: 600;
+  margin-right: 0.4em;
+}
+
+.ref-text a {
+  color: var(--fg-muted);
 }
 
 /* katex sizing */

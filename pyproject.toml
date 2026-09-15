@@ -16,6 +16,7 @@ slide-maker = "slide_maker.cli:main"
 dev = ["pytest>=7.0", "ruff>=0.6", "pypdf>=4.0"]
 docs = ["sphinx>=6.0", "sphinx-rtd-theme>=1.2", "myst-parser>=0.18"]
 pdf = ["playwright>=1.40"]
+pdf-images = ["PyMuPDF>=1.23"]
 
 [build-system]
 requires = ["setuptools>=61.0"]

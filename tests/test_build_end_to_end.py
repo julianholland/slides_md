@@ -27,11 +27,19 @@ def test_build_demo_deck(tmp_path):
     out = tmp_path / "out"
     result = build(input_path=DEMO_DIR / "slides.md", output_dir=out)
 
-    assert result.slide_count == 8
+    # 10 authored slides; the phase-in slide (2 bullets) expands to 3 physical slides
+    assert result.slide_count == 12
     assert result.warnings == []
 
     html = (out / "index.html").read_text()
-    assert html.count('<section class="slide') == 8
+    assert html.count('<section class="slide') == 12
+    # all 3 of the phase-in slide's physical steps share one display number
+    assert html.count('data-display-index="5"') == 3
+
+    # citations: cited once in body text + once via image_reference, same key -> 1 ref
+    assert html.count('<sup class="citation">[1]</sup>') == 1
+    assert html.count('class="citation-badge">1</span>') == 1
+    assert html.count('<span class="ref-num">1.</span>') == 1
 
     # title bg + alpha content-slide bg + full-bleed image-layout slide
     assert html.count('class="bg-layer"') == 3
@@ -59,7 +67,8 @@ def test_build_demo_deck(tmp_path):
 
     images = sorted(p.name for p in (out / "slide_images").iterdir())
     assert images == [
-        "after.png", "before.png", "diagram.png", "example-image-c.png", "hero.jpg",
+        "after.png", "before.png", "diagram.png", "example-image-a.png",
+        "example-image-b.png", "example-image-c.png", "hero.jpg",
         "screenshot_a.png", "screenshot_b.png", "watermark.png",
     ]
 

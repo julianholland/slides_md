@@ -1,0 +1,10 @@
+{%- if slide.kicker %}<h2 class="kicker">{{ slide.kicker }}</h2>{% endif %}
+{%- if slide.title %}<h1>{{ slide.title }}</h1>{% endif %}
+<div class="slide-body stacked references-list">
+  {%- for number, entry in references %}
+  <div class="ref-entry">
+    <span class="ref-num">{{ number }}.</span>
+    <span class="ref-text">{{ entry.html | safe }}{% if entry.doi_url %} <a href="{{ entry.doi_url }}" target="_blank" rel="noopener">DOI</a>{% endif %}</span>
+  </div>
+  {%- endfor %}
+</div>

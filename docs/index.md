@@ -23,12 +23,20 @@ output. It's the same vanilla approach as the hand-built `sulfur_slides` deck it
 modeled on: a dark theme, keyboard/click navigation, click-to-zoom images, and vendored
 KaTeX for math.
 
+[Download the cheatsheet (PDF)](_static/cheatsheet.pdf) — a minimal example of every
+layout and feature, one per page.
+
 ## Key Features
 
-- Five slide layouts (`title`, `content`, `stacked`, `split`, `image`) — see the
-  {doc}`layout-gallery` for a live example of each
+- Six slide layouts (`title`, `content`, `stacked`, `split`, `image`, `references`) —
+  see the {doc}`layout-gallery` for a live example of each
 - Named color/font/watermark themes, switchable with a single `theme:` line in
   `deck.yaml`
+- Phase-in bullet reveal (`phase_in: true`) — a build/reveal sequence with no special
+  body syntax
+- Numbered citations from a BibTeX or plain-text bibliography, cited inline (`[@key]`)
+  or from an image, with DOI links
+- PDFs usable anywhere a PNG/JPEG image is, rasterized automatically at build time
 - Two-image pairs auto-arranged (stacked vs. side-by-side) from real pixel aspect ratio
 - Click-to-zoom image lightbox and vendored KaTeX — no network requests in the built
   output

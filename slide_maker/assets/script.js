@@ -5,12 +5,15 @@
 
   const counterCurrent = document.querySelector(".slide-counter .current");
   const counterTotal = document.querySelector(".slide-counter .total");
-  counterTotal.textContent = total;
+  // A phase-in slide expands into several physical `.slide` elements that all share
+  // one `data-display-index` — the counter shows that shared number, not raw DOM
+  // position, so it stays put across a slide's reveal steps.
+  counterTotal.textContent = new Set([...slides].map((s) => s.dataset.displayIndex)).size;
 
   function show(index) {
     current = Math.max(0, Math.min(total - 1, index));
     slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
-    counterCurrent.textContent = current + 1;
+    counterCurrent.textContent = slides[current].dataset.displayIndex;
   }
 
   function next() {

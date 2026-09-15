@@ -8,8 +8,9 @@ python -m slide_maker build examples/demo/slides.md -o build/demo --serve
 This builds `build/demo/index.html` (plus `assets/`, `vendor/katex/`, and
 `slide_images/`) and serves it at `http://localhost:8000`.
 
-`examples/demo/slides.md` (bundled with the repo) exercises all five layouts, background
-alpha, an image pair, and KaTeX in one deck — a good starting point to copy from, and see
+`examples/demo/slides.md` (bundled with the repo) exercises all six layouts, background
+alpha, an image pair, citations, and KaTeX in one deck — a good starting point to copy
+from, and see
 {doc}`layout-gallery` for a live, one-layout-at-a-time walkthrough.
 
 ## Writing your own deck

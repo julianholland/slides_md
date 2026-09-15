@@ -29,16 +29,26 @@
 <img class="theme-watermark" src="{{ deck.theme_watermark }}" alt="" aria-hidden="true">
 {% endif %}
 {% for slide in slides %}
-<section class="slide{% if slide.layout == 'title' %} title-slide{% elif slide.layout == 'image' %} image-slide{% endif %}{% if slide.classes %} {{ slide.classes }}{% endif %}" id="{{ slide.id }}">
+<section class="slide{% if slide.layout == 'title' %} title-slide{% elif slide.layout == 'image' %} image-slide{% endif %}{% if slide.classes %} {{ slide.classes }}{% endif %}" id="{{ slide.id }}" data-display-index="{{ slide.display_index }}"{% if slide.phase_step is not none %} data-phase-step="{{ slide.phase_step }}" data-phase-step-count="{{ slide.phase_step_count }}"{% endif %}>
 {%- if slide.background %}
   <div class="bg-layer" style="background-image: url('{{ slide.background }}'); opacity: {{ slide.background_opacity }};{% if slide.layout == 'image' %} background-size: {{ slide.fit }};{% endif %}"{% if slide.layout == 'image' %} role="img" aria-label="{{ slide.image_alt }}"{% else %} aria-hidden="true"{% endif %}></div>
 {%- endif %}
 {%- if slide.notes %}
   <!-- notes: {{ slide.notes }} -->
 {%- endif %}
+{%- if slide.layout == 'image' and slide.image_reference %}
+  <span class="citation-badge image-layout-badge">{% if slide.image_reference.doi_url %}<a href="{{ slide.image_reference.doi_url }}" target="_blank" rel="noopener">{{ slide.image_reference.number }}</a>{% else %}{{ slide.image_reference.number }}{% endif %}</span>
+{%- endif %}
   <div class="slide-content">
     {% include layout_templates[slide.layout] %}
   </div>
+{%- if slide.citation_footnotes %}
+  <div class="citation-footnotes">
+    {%- for fn in slide.citation_footnotes %}
+    <div class="citation-footnote-entry">{{ fn.number }}. {{ fn.entry.html | safe }}{% if fn.entry.doi_url %} <a href="{{ fn.entry.doi_url }}" target="_blank" rel="noopener">DOI</a>{% endif %}</div>
+    {%- endfor %}
+  </div>
+{%- endif %}
 </section>
 {% endfor %}
 <div class="nav-zone prev" aria-label="Previous slide"></div>
