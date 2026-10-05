@@ -163,11 +163,95 @@ def test_counter_stays_on_one_number_then_advances(tmp_path):
     assert html.count('data-display-index="2"') == 1
 
 
+# --- other layouts: stacked / split / image ------------------------------
+
+def _sections(html):
+    return html.split('<section class="slide')[1:]
+
+
+def test_stacked_phase_in_reveals_bullets_and_keeps_formula(tmp_path):
+    deck = (
+        "---\nlayout: stacked\ntitle: S\nphase_in: true\nformula: E = mc^2\n---\n\n"
+        "- A\n- B\n"
+    )
+    result, html = _build(tmp_path, deck, strict=True)
+    assert result.slide_count == 3
+    sections = _sections(html)
+    assert all('class="formula-box"' in sec for sec in sections)
+    assert '<li data-phase="1" class="phase-pending">B</li>' in sections[0]
+    assert '<li data-phase="0" class="phase-dim">A</li>' in sections[1]
+    assert "phase-dim" not in sections[2] and "phase-pending" not in sections[2]
+
+
+def test_split_phase_in_reveals_one_panel_per_step(tmp_path):
+    deck = (
+        "---\nlayout: split\ntitle: P\nphase_in: true\npanels:\n"
+        "  - image: example-image-a\n  - image: example-image-b\n  - image: example-image-c\n---\n"
+    )
+    result, html = _build(tmp_path, deck, strict=True)
+    assert result.slide_count == 4
+    sections = _sections(html)
+    assert all('data-display-index="1"' in sec for sec in sections)
+
+    def panel_classes(sec):
+        return [chunk.split('"')[0] for chunk in sec.split('<div class="panel')[1:] if chunk.startswith((" ", '"'))]
+
+    assert panel_classes(sections[0]) == ["", " phase-pending", " phase-pending"]
+    assert panel_classes(sections[1]) == [" phase-dim", "", " phase-pending"]
+    assert panel_classes(sections[2]) == [" phase-dim", " phase-dim", ""]
+    assert panel_classes(sections[3]) == ["", "", ""]
+
+
+def test_image_phase_in_cycles_images_without_final_step(tmp_path):
+    deck = (
+        "---\nlayout: image\ntitle: I\nphase_in: true\nphase_images:\n"
+        "  - image: example-image-a\n  - image: example-image-b\n  - image: example-image-c\n---\n"
+    )
+    result, html = _build(tmp_path, deck, strict=True)
+    assert result.slide_count == 3
+    sections = _sections(html)
+    for sec, letter in zip(sections, "abc"):
+        assert f"slide_images/example-image-{letter}.png" in sec
+        assert 'data-display-index="1"' in sec
+        assert 'aria-label="Placeholder image ' + letter.upper() + '"' in sec
+
+
 # --- validation errors --------------------------------------------------
 
-def test_phase_in_rejected_on_non_content_layout(tmp_path):
-    deck = "---\nlayout: stacked\ntitle: X\nphase_in: true\n---\n\n- A\n"
-    with pytest.raises(SlideMakerError, match="phase_in is only used by layout 'content'"):
+def test_phase_in_rejected_on_title_layout(tmp_path):
+    deck = "---\nlayout: title\ntitle: X\nphase_in: true\n---\n"
+    with pytest.raises(SlideMakerError, match="phase_in is only used by layouts"):
+        _build(tmp_path, deck)
+
+
+def test_phase_level_rejected_on_split(tmp_path):
+    deck = "---\nlayout: split\nphase_in: true\nphase_level: 2\npanels:\n  - image: example-image\n---\n"
+    with pytest.raises(SlideMakerError, match="phase_level is only used by layouts"):
+        _build(tmp_path, deck)
+
+
+@pytest.mark.parametrize(
+    "layout_fields",
+    ["layout: stacked\ntitle: X", "layout: split\npanels:\n  - image: example-image"],
+)
+def test_phase_images_rejected_on_stacked_and_split(tmp_path, layout_fields):
+    deck = f"---\n{layout_fields}\nphase_in: true\nphase_images:\n  - image: example-image\n---\n\n- A\n"
+    with pytest.raises(SlideMakerError, match="phase_images is only used by layouts"):
+        _build(tmp_path, deck)
+
+
+def test_image_phase_in_rejects_image_field(tmp_path):
+    deck = (
+        "---\nlayout: image\nimage: example-image\nphase_in: true\n"
+        "phase_images:\n  - image: example-image-a\n---\n"
+    )
+    with pytest.raises(SlideMakerError, match="remove 'image'"):
+        _build(tmp_path, deck)
+
+
+def test_image_phase_in_requires_phase_images(tmp_path):
+    deck = "---\nlayout: image\nphase_in: true\n---\n"
+    with pytest.raises(SlideMakerError, match="requires a non-empty 'phase_images'"):
         _build(tmp_path, deck)
 
 

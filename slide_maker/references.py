@@ -305,17 +305,21 @@ def process_citations(
         # bullet/image's refs" (not the whole slide's accumulated set). Resolved via
         # each bullet's source line span (phase_in.line_step_ranges), correlated
         # against the citation's own line in the raw body.
+        # Non-bullet layouts (split/image) have no per-bullet ranges, so any body
+        # citation there falls through to "every step" below.
         ranges: list[tuple[int, int, int]] = []
-        target_count = 0
+        step_count = final_step = 0
         if slide.phase_in:
-            ranges, target_count = phase_in.line_step_ranges(slide.body, slide.phase_level)
+            step_count, final_step = phase_in.step_layout(slide)
+            if slide.layout in phase_in.BULLET_LAYOUTS:
+                ranges, _ = phase_in.line_step_ranges(slide.body, slide.phase_level)
 
         def substitute(match: re.Match, _slide=slide) -> str:
             numbers = [resolve(key, _slide.index) for key in _parse_keys(match.group(1))]
             if _slide.phase_in:
                 line = _slide.body[: match.start()].count("\n")
                 step = phase_in.step_for_line(ranges, line)
-                steps = range(target_count + 1) if step is None else (step,)
+                steps = range(step_count) if step is None else (step,)
                 for s in steps:
                     for n in numbers:
                         note(n, step=s)
@@ -341,17 +345,24 @@ def process_citations(
                 if not panel.reference:
                     continue
                 number = resolve(panel.reference, slide.index)
-                for s in range(target_count + 1):
+                for s in range(step_count):
                     if min(s, n_images - 1) == i:
                         note(number, step=s)
-            # The final "everything undimmed" step shows the union of every other
-            # step's citations, matching every bullet/image being back on screen too.
-            union: list[int] = []
-            for s in range(target_count):
-                for n in by_step.get(s, []):
-                    if n not in union:
-                        union.append(n)
-            by_step[target_count] = union
+            # A split panel's reference belongs to the step that reveals that panel.
+            if slide.layout == "split":
+                for i, panel in enumerate(slide.panels):
+                    if panel.reference:
+                        note(resolve(panel.reference, slide.index), step=i)
+            # The final "everything undimmed" step (absent on the image layout, where
+            # final_step == step_count) shows the union of every other step's
+            # citations, matching every bullet/panel/image being back on screen too.
+            if final_step < step_count:
+                union: list[int] = []
+                for s in range(final_step):
+                    for n in by_step.get(s, []):
+                        if n not in union:
+                            union.append(n)
+                by_step[final_step] = union
         else:
             if slide.image_reference:
                 note(resolve(slide.image_reference, slide.index))

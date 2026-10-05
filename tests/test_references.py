@@ -286,3 +286,42 @@ phase_images:
     assert len(footnotes[2]) == 1 and footnotes[2][0].startswith("2. Jones")
     final = footnotes[3]
     assert len(final) == 2
+
+
+def test_split_phase_in_panel_reference_only_on_its_step(tmp_path):
+    deck = """\
+---
+layout: split
+phase_in: true
+panels:
+  - image: example-image-a
+    reference: smith2020
+  - image: example-image-b
+    reference: jones2019
+---
+"""
+    _, html = _build(tmp_path, deck, BIB)
+    footnotes = _footnotes_per_physical_slide(html)
+    assert len(footnotes) == 3
+    assert len(footnotes[0]) == 1 and footnotes[0][0].startswith("1. Smith")
+    assert len(footnotes[1]) == 1 and footnotes[1][0].startswith("2. Jones")
+    assert len(footnotes[2]) == 2
+
+
+def test_image_phase_in_reference_per_image_no_union_step(tmp_path):
+    deck = """\
+---
+layout: image
+phase_in: true
+phase_images:
+  - image: example-image-a
+    reference: smith2020
+  - image: example-image-b
+---
+"""
+    _, html = _build(tmp_path, deck, BIB)
+    footnotes = _footnotes_per_physical_slide(html)
+    assert len(footnotes) == 2
+    assert len(footnotes[0]) == 1 and footnotes[0][0].startswith("1. Smith")
+    assert footnotes[1] == []
+    assert html.count("image-layout-badge") == 1

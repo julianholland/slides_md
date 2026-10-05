@@ -3,7 +3,7 @@
 <div class="slide-body">
   <div class="split-panels">
     {%- for panel in slide.panels %}
-    <div class="panel">
+    <div class="panel{% if panel.phase_class %} {{ panel.phase_class }}{% endif %}">
       <div class="panel-media">
         <img src="{{ panel.image }}" alt="{{ panel.alt }}">
         {%- if panel.reference %}<span class="citation-badge">{% if panel.reference.doi_url %}<a href="{{ panel.reference.doi_url }}" target="_blank" rel="noopener">{{ panel.reference.number }}</a>{% else %}{{ panel.reference.number }}{% endif %}</span>{% endif %}

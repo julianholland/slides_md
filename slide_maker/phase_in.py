@@ -1,4 +1,9 @@
-"""Expand a `phase_in` content slide into one physical slide per reveal step.
+"""Expand a `phase_in` slide into one physical slide per reveal step.
+
+Per layout: `content`/`stacked` reveal the body's bullets (below); `split` reveals one
+panel per step (earlier panels dimmed, later ones hidden but keeping their space),
+plus a final "everything undimmed" step; `image` cycles its `phase_images` full-bleed,
+one per step, with no extra final step.
 
 `phase_level` (1-indexed: 1 = top-level bullets, 2 = first sub-level, ...) picks the
 bullet-nesting depth that drives the reveal. A bullet at exactly that depth is always
@@ -120,6 +125,33 @@ def step_for_line(ranges: list[tuple[int, int, int]], line: int) -> int | None:
     return best_step
 
 
+BULLET_LAYOUTS = ("content", "stacked")
+
+
+def step_layout(slide: SlideConfig) -> tuple[int, int]:
+    """(step_count, final_step) for a phase_in slide, where `final_step` is the
+    index of the "everything undimmed" step (== step_count for the image layout,
+    which has none). Shared by `expand_slide` and citation processing so the two
+    can't disagree on how many steps a slide has."""
+    if slide.layout in BULLET_LAYOUTS:
+        _, target_count = render_with_phase_tags(slide.body, slide.phase_level)
+        if target_count == 0:
+            raise SlideMakerError("phase_in requires at least one bullet point in the body", slide_index=slide.index)
+        return target_count + 1, target_count
+    if slide.layout == "split":
+        return len(slide.panels) + 1, len(slide.panels)
+    if slide.layout == "image":
+        return len(slide.phase_images), len(slide.phase_images)
+    raise SlideMakerError(f"phase_in is not supported on layout '{slide.layout}'", slide_index=slide.index)
+
+
+def panel_phase_class(index: int, step: int, final_step: int) -> str:
+    """CSS class for split-layout panel `index` at reveal step `step`."""
+    if step >= final_step or index == step:
+        return ""
+    return "phase-dim" if index < step else "phase-pending"
+
+
 def bullet_phase_classes(body_html: str, step: int, target_count: int) -> str:
     """Mark bullets `phase-dim`/`phase-pending` for reveal step `step` (0-indexed) of
     `target_count` targets. `step == target_count` is the final "everything
@@ -139,30 +171,33 @@ def bullet_phase_classes(body_html: str, step: int, target_count: int) -> str:
 
 
 def expand_slide(slide: SlideConfig) -> list[SlideConfig]:
-    """Expand one phase_in slide into `target_count + 1` physical clones. A
-    non-phase-in slide passes through unchanged."""
+    """Expand one phase_in slide into one physical clone per reveal step (see
+    `step_layout`). A non-phase-in slide passes through unchanged."""
     if not slide.phase_in:
         return [slide]
 
-    _, target_count = render_with_phase_tags(slide.body, slide.phase_level)
-    if target_count == 0:
-        raise SlideMakerError("phase_in requires at least one bullet point in the body", slide_index=slide.index)
-
-    step_count = target_count + 1
+    step_count, _ = step_layout(slide)
     clones = []
     for step in range(step_count):
-        image_entry = slide.phase_images[min(step, len(slide.phase_images) - 1)] if slide.phase_images else None
+        changes = {}
+        # Only content/image use phase_images (schema forbids them elsewhere, and
+        # forbids `image` alongside them), so other clones keep their fields as-is.
+        if slide.phase_images:
+            image_entry = slide.phase_images[min(step, len(slide.phase_images) - 1)]
+            changes = dict(
+                image=image_entry.image,
+                image_alt=image_entry.alt,
+                image_label=image_entry.label,
+                image_reference=image_entry.reference,
+            )
         clones.append(
             replace(
                 slide,
                 id=f"{slide.id}-{step + 1}",
                 phase_step=step,
                 phase_step_count=step_count,
-                image=image_entry.image if image_entry else None,
-                image_alt=image_entry.alt if image_entry else "",
-                image_label=image_entry.label if image_entry else None,
-                image_reference=image_entry.reference if image_entry else "",
                 citation_numbers=slide.citation_numbers_by_step.get(step, []),
+                **changes,
             )
         )
     return clones

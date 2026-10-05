@@ -200,17 +200,26 @@ ul.bullets ul li::before {
   margin-top: 0.6em;
 }
 
-/* phase-in reveal steps (content layout only): a bullet's `data-phase` value is the
-   step it first became visible at (an ancestor bullet is backfilled to match its
-   first revealed child, so both move in lock-step forever). Dimmed = revealed in an
-   earlier step; pending = not revealed yet this step, removed from flow entirely so
-   the list only occupies space for what's actually on screen. */
-.text-col li.phase-dim {
+/* phase-in reveal steps (content/stacked bullets, split panels): a bullet's
+   `data-phase` value is the step it first became visible at (an ancestor bullet is
+   backfilled to match its first revealed child, so both move in lock-step forever).
+   Dimmed = revealed in an earlier step; pending = not revealed yet this step. A
+   pending bullet is removed from flow entirely so the list only occupies space for
+   what's actually on screen; a pending split panel instead keeps its space
+   (visibility, not display) so the revealed panels don't shift as more appear. */
+.text-col li.phase-dim,
+.slide-body.stacked li.phase-dim,
+.split-panels > .panel.phase-dim {
   opacity: 0.4;
 }
 
-.text-col li.phase-pending {
+.text-col li.phase-pending,
+.slide-body.stacked li.phase-pending {
   display: none;
+}
+
+.split-panels > .panel.phase-pending {
+  visibility: hidden;
 }
 
 /* fenced code blocks - same panel treatment as blockquotes, but monospace and

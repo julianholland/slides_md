@@ -175,13 +175,18 @@ def _slide_context(
             label=p.label,
             alt=_alt_text(p.alt, p.image, fallback=p.label),
             reference=_citation_badge(p.reference, citations),
+            phase_class=(
+                phase_in.panel_phase_class(i, slide.phase_step, slide.phase_step_count - 1)
+                if slide.phase_step is not None
+                else ""
+            ),
         )
-        for p in slide.panels
+        for i, p in enumerate(slide.panels)
     ]
 
     formula_html = render_mod.render_formula(slide.formula) if slide.formula else None
 
-    if slide.phase_step is not None:
+    if slide.phase_step is not None and slide.layout in phase_in.BULLET_LAYOUTS:
         raw_html, _ = phase_in.render_with_phase_tags(slide.body, slide.phase_level)
         body_html = phase_in.bullet_phase_classes(raw_html, slide.phase_step, slide.phase_step_count - 1)
     else:

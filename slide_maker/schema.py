@@ -12,6 +12,7 @@ from .themes import THEME_PRESETS
 
 VALID_LAYOUTS = {"title", "content", "stacked", "split", "image", "references"}
 VALID_FITS = {"cover", "contain"}
+PHASE_IN_LAYOUTS = {"content", "stacked", "split", "image"}
 
 # Characters that would let a deck.yaml `theme:` override value break out of the
 # `:root { --key: value; }` rule (or the surrounding <style> block) it's rendered
@@ -142,7 +143,9 @@ def _check_opacity(fm: dict, idx: int, strict: bool, warnings: list[str]) -> flo
         raise SlideMakerError("background_opacity must be a number", slide_index=idx) from None
     if not 0.0 <= opacity <= 1.0:
         raise SlideMakerError("background_opacity must be between 0 and 1", slide_index=idx)
-    fills_slide = fm.get("background") or (fm.get("layout") == "image" and fm.get("image"))
+    fills_slide = fm.get("background") or (
+        fm.get("layout") == "image" and (fm.get("image") or fm.get("phase_images"))
+    )
     if "background_opacity" in fm and not fills_slide:
         msg = "background_opacity set without a background image"
         if strict:
@@ -206,14 +209,18 @@ def validate_slide(raw_slide: RawSlide, deck: DeckConfig, strict: bool) -> Slide
             warnings.append(msg)
 
     phase_in = bool(fm.get("phase_in", False))
-    if "phase_in" in fm and layout != "content":
-        raise SlideMakerError("phase_in is only used by layout 'content'", slide_index=idx)
+    if "phase_in" in fm and layout not in PHASE_IN_LAYOUTS:
+        raise SlideMakerError(
+            f"phase_in is only used by layouts {sorted(PHASE_IN_LAYOUTS)}", slide_index=idx
+        )
 
     phase_level = fm.get("phase_level", 1)
     if not isinstance(phase_level, int) or isinstance(phase_level, bool) or phase_level < 1:
         raise SlideMakerError("phase_level must be an integer >= 1", slide_index=idx)
     if "phase_level" in fm and not phase_in:
         raise SlideMakerError("phase_level set without phase_in", slide_index=idx)
+    if "phase_level" in fm and layout not in ("content", "stacked"):
+        raise SlideMakerError("phase_level is only used by layouts 'content' and 'stacked'", slide_index=idx)
 
     phase_images = [
         Panel(image=p["image"], label=p.get("label", ""), alt=p.get("alt", ""), reference=p.get("reference", ""))
@@ -221,6 +228,8 @@ def validate_slide(raw_slide: RawSlide, deck: DeckConfig, strict: bool) -> Slide
     ]
     if "phase_images" in fm and not phase_in:
         raise SlideMakerError("phase_images set without phase_in", slide_index=idx)
+    if "phase_images" in fm and layout not in ("content", "image"):
+        raise SlideMakerError("phase_images is only used by layouts 'content' and 'image'", slide_index=idx)
     for i, item in enumerate(phase_images):
         if not item.alt and not placeholders.resolve_placeholder(item.image):
             msg = f"phase_images[{i}] set without alt"
@@ -282,11 +291,24 @@ def validate_slide(raw_slide: RawSlide, deck: DeckConfig, strict: bool) -> Slide
             )
         if phase_in and not slide.body.strip():
             raise SlideMakerError("phase_in requires bullet points in the slide body", slide_index=idx)
+    elif layout == "stacked":
+        if phase_in and not slide.body.strip():
+            raise SlideMakerError("phase_in requires bullet points in the slide body", slide_index=idx)
     elif layout == "split":
         if not slide.panels:
             raise SlideMakerError("layout 'split' requires a non-empty 'panels' list", slide_index=idx)
     elif layout == "image":
-        if not slide.image:
+        if phase_in:
+            if slide.image:
+                raise SlideMakerError(
+                    "layout 'image' with phase_in cycles through 'phase_images' — remove 'image'",
+                    slide_index=idx,
+                )
+            if not slide.phase_images:
+                raise SlideMakerError(
+                    "layout 'image' with phase_in requires a non-empty 'phase_images' list", slide_index=idx
+                )
+        elif not slide.image:
             raise SlideMakerError("layout 'image' requires an 'image' field", slide_index=idx)
         if slide.background:
             raise SlideMakerError(

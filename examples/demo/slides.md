@@ -145,6 +145,35 @@ panels:
 +++
 
 ---
+layout: split
+kicker: Feature
+title: Phase-In Panels
+phase_in: true
+panels:
+  - image: images/before.png
+    label: First
+  - image: images/after.png
+    label: Second
+  - image: example-image-c
+    label: Third
+---
+
++++
+
+---
+layout: image
+kicker: Feature
+title: Phase-In Image Cycle
+phase_in: true
+phase_images:
+  - image: example-image-a
+  - image: example-image-b
+  - image: example-image-c
+---
+
++++
+
+---
 layout: references
 title: References
 ---

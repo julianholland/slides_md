@@ -86,7 +86,7 @@ gone from the build.
 | `subtitle` | title | |
 | `author` | title | falls back to `deck.yaml`'s `default_author` |
 | `date` | title | literal string, or `today` to fill in the build date |
-| `image` / `image_alt` / `image_label` / `image_reference` | content, image | on `content`, a boxed image with an optional caption `image_label` (mutually exclusive with `video`/`panels`/`images`/`phase_in`); on `image`, the full-bleed slide image (required, mutually exclusive with `background`). Accepts a placeholder name or a `.pdf` file in place of a real image path. `image_reference` cites a bibliography key, numbering it in the image's top-right corner |
+| `image` / `image_alt` / `image_label` / `image_reference` | content, image | on `content`, a boxed image with an optional caption `image_label` (mutually exclusive with `video`/`panels`/`images`/`phase_in`); on `image`, the full-bleed slide image (required unless `phase_in` is set, mutually exclusive with `background`/`phase_images`). Accepts a placeholder name or a `.pdf` file in place of a real image path. `image_reference` cites a bibliography key, numbering it in the image's top-right corner |
 | `images` | content | exactly 2 `{image, label?, alt?, reference?}`; auto-arranged stacked or side-by-side from aspect ratio (mutually exclusive with `image`/`video`/`panels`/`phase_in`) |
 | `video` | content | mutually exclusive with `image`/`panels`/`images`/`phase_in` |
 | `panels` | content, split | list of `{image, label, alt?, reference?}`; required for `split` |
@@ -97,9 +97,9 @@ gone from the build.
 | `formula_note` | content/stacked | small caption under the formula |
 | `notes` | all | speaker notes, emitted as an HTML comment (not visible) |
 | `id` / `classes` | all | override the slide's `id`, or add extra CSS classes |
-| `phase_in` | content | `true` to reveal the body's bullets one at a time — see [Phase-in reveal](#phase-in-reveal); mutually exclusive with `image`/`video`/`images`/`panels` |
-| `phase_level` | content | with `phase_in: true`: which bullet-indent level drives the reveal (`1` = top-level, default; `2` = first sub-level; ...) |
-| `phase_images` | content | with `phase_in: true`: list of `{image, alt?, reference?}` shown one per reveal step, freezing on the last once exhausted |
+| `phase_in` | content, stacked, split, image | `true` to reveal the slide step by step — bullets on `content`/`stacked`, panels on `split`, `phase_images` on `image`; see [Phase-in reveal](#phase-in-reveal). On `content`, mutually exclusive with `image`/`video`/`images`/`panels` |
+| `phase_level` | content, stacked | with `phase_in: true`: which bullet-indent level drives the reveal (`1` = top-level, default; `2` = first sub-level; ...) |
+| `phase_images` | content, image | with `phase_in: true`: list of `{image, alt?, reference?}` shown one per reveal step. On `content`, it stays on the last image once the list runs out; on `image`, it's required and each entry is one full-bleed step |
 
 Any slide can carry a `background` + `background_opacity` — this is independent of the
 title slide's translucent panel, so a dimmed background works on content slides too.
@@ -148,6 +148,30 @@ bullets). `phase_level: 2` reveals at the first sub-bullet level instead — a t
 bullet with sub-bullets appears alongside its first sub-bullet, and a top-level bullet
 with no sub-bullets at all just becomes its own step.
 
+`phase_in` works on other layouts too:
+
+- **`stacked`** — reveals the body's bullets exactly as above (`phase_level` included).
+  The `formula` box stays visible on every step.
+- **`split`** — reveals one panel per step. Earlier panels dim, and panels not shown yet
+  keep their space so nothing shifts. A final step shows every panel at full brightness:
+  3 panels → 4 steps.
+- **`image`** — cycles through `phase_images` full-bleed, one per step, in place of the
+  single `image` field. There's no extra final step: 3 images → 3 steps. `title`/`kicker`
+  stay as the caption throughout.
+
+```markdown
+---
+layout: image
+title: Time Series
+phase_in: true
+phase_images:
+  - image: images/t0.png
+    alt: Frame at t = 0
+  - image: images/t1.png
+    alt: Frame at t = 1
+---
+```
+
 ### Citations & references
 
 Set `bibliography:` in `deck.yaml` to a file of numbered references — a `.bib` file
@@ -195,9 +219,10 @@ Citing a key that isn't in the bibliography, or citing anything at all with no
 `bibliography:` configured, is a build error — without `bibliography:` set, `[@...]`-
 shaped text is otherwise left completely untouched.
 
-On a `phase_in` slide, the footnote list only shows references for whichever bullet or
-image is *currently* revealed at each step — not the whole slide's accumulated
-citations — with the final "everything undimmed" step showing the full combined list.
+On a `phase_in` slide, the footnote list only shows references for whichever bullet,
+panel or image is *currently* revealed at each step — not the whole slide's accumulated
+citations — with the final "everything undimmed" step (if the layout has one) showing
+the full combined list.
 
 ### PDFs as images
 

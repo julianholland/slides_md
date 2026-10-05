@@ -181,7 +181,7 @@ free-form `theme:` override dict, becomes `--{key}` in the `<style>` block) — 
 template or build.py change was needed, just the new CSS variable + the two selectors
 consuming it.
 
-**Phase-in reveal** (`phase_in: true`, `content` layout only, `slide_maker/phase_in.py`):
+**Phase-in reveal** (`phase_in: true`, `content`/`stacked`/`split`/`image` layouts, `slide_maker/phase_in.py`):
 one authored slide expands into several *physical* `<section class="slide">`s — one per
 bullet-reveal step, plus a final "everything undimmed" step — so keyboard/click nav and
 `--pdf` see them as ordinary separate slides, while `data-display-index` (set on every
@@ -215,6 +215,17 @@ static image on screen through the whole reveal. Warnings/body-syntax-checks in
 0`), not once per physical clone — `dataclasses.replace()` gives every clone the same
 `warnings` list object, so without this guard the same message would repeat once per
 reveal step.
+Other layouts reuse the same one-authored-slide → N-physical-clones mechanism, with
+the step count per layout coming from `phase_in.step_layout` (also used by
+`references.process_citations`, so the two can't disagree): `stacked` uses the same
+bullet logic as `content` (gated in `_slide_context` on `phase_in.BULLET_LAYOUTS`;
+`phase_images` is forbidden there). `split` has `len(panels) + 1` steps, and
+`phase_in.panel_phase_class` puts `phase-dim`/`phase-pending` on each `.panel`. A pending
+panel uses `visibility: hidden`, not `display: none`, so revealed panels don't reflow.
+`image` has `len(phase_images)` steps and *no* final step. Each clone just sets
+`.image`/`.image_alt`/`.image_reference` from its `phase_images` entry, so the existing
+image-layout `.bg-layer` + `image-layout-badge` path renders it unchanged. Schema
+forbids `image` alongside `phase_in` there.
 
 **Citations** (`bibliography:` in `deck.yaml`, `slide_maker/references.py`): a
 `bibliography:` file (`.bib` → hand-rolled BibTeX parser formatted per ACS style,
@@ -319,7 +330,7 @@ frame; both are exercised by
 Playwright and skip outright if Chromium isn't installed locally.
 
 `examples/demo/slides.md` exercises all six layouts + background alpha + image pairs +
-placeholder images + phase-in reveal + citations/references + `<!-- -->` comments
+placeholder images + phase-in reveal (content, split, image) + citations/references + `<!-- -->` comments
 (inline and a whole commented-out slide) + blockquotes + a pipe table + KaTeX, and doubles as the
 primary integration-test fixture
 (`tests/test_build_end_to_end.py`) — keep it in sync when adding fields/layouts. See

@@ -27,27 +27,34 @@ def test_build_demo_deck(tmp_path):
     out = tmp_path / "out"
     result = build(input_path=DEMO_DIR / "slides.md", output_dir=out)
 
-    # 10 authored slides; the phase-in slide (2 bullets) expands to 3 physical slides
-    assert result.slide_count == 12
+    # 12 authored slides; the phase-in content slide (2 bullets) expands to 3 physical
+    # slides, the phase-in split slide (3 panels) to 4, the phase-in image slide
+    # (3 phase_images) to 3
+    assert result.slide_count == 19
     assert result.warnings == []
 
     html = (out / "index.html").read_text()
-    assert html.count('<section class="slide') == 12
-    # all 3 of the phase-in slide's physical steps share one display number
+    assert html.count('<section class="slide') == 19
+    # every phase-in slide's physical steps share one display number
     assert html.count('data-display-index="5"') == 3
+    assert html.count('data-display-index="10"') == 4
+    assert html.count('data-display-index="11"') == 3
 
     # citations: cited once in body text + once via image_reference, same key -> 1 ref
     assert html.count('<sup class="citation">[1]</sup>') == 1
     assert html.count('class="citation-badge">1</span>') == 1
     assert html.count('<span class="ref-num">1.</span>') == 1
 
-    # title bg + alpha content-slide bg + full-bleed image-layout slide
-    assert html.count('class="bg-layer"') == 3
+    # title bg + alpha content-slide bg + full-bleed image-layout slide + 3 image cycle steps
+    assert html.count('class="bg-layer"') == 6
     assert html.count('class="formula-box"') == 1
     assert html.count("<table>") == 1
-    assert html.count('class="panel"') == 2
-    assert html.count('class="slide image-slide"') == 1
-    assert html.count('class="image-caption"') == 1
+    # plain split: 2; phase-in split: 1 current panel on each of 3 steps + 3 on the final
+    assert html.count('class="panel"') == 8
+    assert html.count('class="panel phase-pending"') == 3
+    assert html.count('class="panel phase-dim"') == 3
+    assert html.count('class="slide image-slide"') == 4
+    assert html.count('class="image-caption"') == 4
 
     # screenshot_a/b are 400x900 portraits: ratio sum 0.44+0.44 <= 1 -> side by side
     assert html.count('class="image-pair side"') == 1
