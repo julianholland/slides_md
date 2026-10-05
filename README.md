@@ -6,20 +6,22 @@
 **Full documentation: [slides-md.readthedocs.io](https://slides-md.readthedocs.io/)**
 
 Turn a single Markdown file into a static HTML slide deck. No client-side framework —
-just the same vanilla HTML/CSS/JS approach as the hand-built [`sulfur_slides`](../sulfur_slides)
+just the same vanilla HTML/CSS/JS approach as the hand-built `sulfur_slides`
 deck it's based on: a dark theme, keyboard/click navigation, click-to-zoom images, and
 vendored KaTeX for math, with no build step or CDN dependency in the output.
 
 ## Quickstart
 
 ```bash
-uv sync
-uv run slides_md examples/demo/slides.md            # add --force to rebuild over a previous build
+uv tool install slides-md                  # or 'slides-md[pdf]' for --pdf/--thumbnail
+slides_md slides.md                        # build next to slides.md and serve at :8000
 ```
 
-This builds `examples/demo/build/index.html` (plus `assets/`, `vendor/katex/`, and
-`slide_images/`) and serves it at `http://localhost:8000`. `examples/demo/slides.md`
-exercises every layout and feature in one deck — a good starting point to copy from.
+From a source checkout, `uv sync` then `uv run slides_md examples/demo/slides.md` (add
+`--force` to rebuild over a previous build) builds `examples/demo/build/index.html` (plus
+`assets/`, `vendor/katex/`, and `slide_images/`) and serves it at `http://localhost:8000`.
+`examples/demo/slides.md` exercises every layout and feature in one deck — a good starting
+point to copy from.
 
 ## Authoring format
 
