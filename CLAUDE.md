@@ -18,7 +18,7 @@ uv run pytest                                                      # run all tes
 uv run pytest tests/test_build_end_to_end.py::test_build_demo_deck # run a single test
 uv run ruff check .                                                # lint
 uv run python -m deckoction build examples/demo/slides.md -o build/demo --serve   # build + preview at :8000
-uv run slides_md examples/demo/slides.md [--force]                 # shortcut: build to examples/demo/build/ + serve at :8000
+uv run deckoction examples/demo/slides.md [--force]                # shortcut (= slides_md): build to examples/demo/build/ + serve at :8000
 
 uv sync --extra pdf && uv run playwright install chromium          # needed for --pdf / --thumbnail
 uv run python -m deckoction build examples/demo/slides.md -o build/demo --pdf demo.pdf --thumbnail demo.png

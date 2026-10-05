@@ -10,9 +10,21 @@ from .parser import SlideMakerError
 from .pdf import export_pdf
 from .thumbnail import export_thumbnail
 
+SUBCOMMANDS = ("build",)
+
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(prog="deckoction")
+    argv = sys.argv[1:] if argv is None else argv
+    # `deckoction slides.md` is the same as `slides_md slides.md` (build next to the input
+    # and serve); only a leading subcommand or option goes to the subcommand parser below.
+    if argv and argv[0] not in SUBCOMMANDS and not argv[0].startswith("-"):
+        return serve_main(argv, prog="deckoction")
+
+    parser = argparse.ArgumentParser(
+        prog="deckoction",
+        epilog="Shortcut: `deckoction slides.md [-o DIR] [--force] [--port N]` builds next to "
+        "the input and serves it (same as `slides_md`).",
+    )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     build_parser = subparsers.add_parser("build", help="Build an HTML slide deck from a Markdown file")
@@ -67,9 +79,9 @@ def main(argv: list[str] | None = None) -> int:
     return 0
 
 
-def serve_main(argv: list[str] | None = None) -> int:
+def serve_main(argv: list[str] | None = None, prog: str = "slides_md") -> int:
     """`slides_md slides.md` — build into `<input dir>/build` and serve it."""
-    parser = argparse.ArgumentParser(prog="slides_md", description="Build a slide deck and serve it for viewing")
+    parser = argparse.ArgumentParser(prog=prog, description="Build a slide deck and serve it for viewing")
     parser.add_argument("input", type=Path, help="Path to the slides.md file")
     parser.add_argument("-o", "--output", type=Path, default=None, help="Output directory (default: build/ next to input)")
     parser.add_argument("--force", action="store_true", help="Overwrite a non-empty output directory")

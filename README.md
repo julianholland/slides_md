@@ -14,10 +14,10 @@ vendored KaTeX for math, with no build step or CDN dependency in the output.
 
 ```bash
 uv tool install deckoction-md                  # or 'deckoction-md[pdf]' for --pdf/--thumbnail
-slides_md slides.md                        # build next to slides.md and serve at :8000
+deckoction slides.md                       # build next to slides.md and serve at :8000
 ```
 
-From a source checkout, `uv sync` then `uv run slides_md examples/demo/slides.md` (add
+From a source checkout, `uv sync` then `uv run deckoction examples/demo/slides.md` (add
 `--force` to rebuild over a previous build) builds `examples/demo/build/index.html` (plus
 `assets/`, `vendor/katex/`, and `slide_images/`) and serves it at `http://localhost:8000`.
 `examples/demo/slides.md` exercises every layout and feature in one deck — a good starting
@@ -295,13 +295,14 @@ bibliography: refs.bib       # numbered citations — see Citations & references
 ## CLI
 
 ```
-slides_md <input.md>          # build into build/ next to input, then serve it
+deckoction <input.md>         # build into build/ next to input, then serve it
   [--force]                   # overwrite a non-empty output directory (needed to rebuild)
   [-o DIR]                    # output directory instead of build/ next to input
   [--port N]                  # default: 8000
 ```
 
-`slides_md` is the quick preview shortcut; for every other option use the full command:
+This quick preview shortcut is also available as `slides_md <input.md>` (identical
+options). For every other option use the `build` subcommand:
 
 ```
 python -m deckoction build <input.md> -o <output_dir>

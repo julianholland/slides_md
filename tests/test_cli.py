@@ -33,3 +33,24 @@ def test_slides_md_rebuild_requires_force(tmp_path, monkeypatch, capsys):
     assert cli.serve_main([str(slides)]) == 1
     assert "--force" in capsys.readouterr().err
     assert cli.serve_main([str(slides), "--force", "--port", "9001"]) == 0
+
+
+def test_deckoction_without_subcommand_builds_and_serves_like_slides_md(tmp_path, monkeypatch):
+    calls = []
+    monkeypatch.setattr(cli.subprocess, "run", lambda cmd, **kw: calls.append((cmd, kw)))
+    slides = _copy_demo(tmp_path)
+
+    assert cli.main([str(slides), "--port", "9001"]) == 0
+    out = slides.parent / "build"
+    assert (out / "index.html").exists()
+    (cmd, kw), = calls
+    assert cmd[1:] == ["-m", "http.server", "9001"]
+    assert kw["cwd"] == out
+
+
+def test_deckoction_build_subcommand_still_works(tmp_path):
+    slides = _copy_demo(tmp_path)
+    out = tmp_path / "out"
+
+    assert cli.main(["build", str(slides), "-o", str(out)]) == 0
+    assert (out / "index.html").exists()

@@ -18,7 +18,7 @@ uv sync
 ```
 
 (The PyPI distribution is named `deckoction-md`; the importable Python package is
-`deckoction`. In a checkout, prefix commands with `uv run`, e.g. `uv run slides_md ...`.)
+`deckoction`. In a checkout, prefix commands with `uv run`, e.g. `uv run deckoction slides.md`.)
 
 This installs the `deckoction` and `slides_md` console scripts and enables `python -m deckoction`.
 Requires Python 3.10 or later.
