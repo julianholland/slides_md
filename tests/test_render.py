@@ -46,3 +46,13 @@ def test_blockquote_renders_and_is_not_warned_on():
     html = render_body("> A quoted callout\n")
     assert html == "<blockquote>\n<p>A quoted callout</p>\n</blockquote>\n"
     assert check_unsupported_body_syntax("> A quoted callout\n") == []
+
+
+def test_pipe_table_renders_as_table():
+    body = "| a | b |\n|---|--:|\n| $x$ | **2** |\n"
+    html = render_body(body)
+    assert html.startswith("<table>\n<thead>")
+    assert "<th>a</th>" in html
+    assert '<td style="text-align:right"><strong>2</strong></td>' in html
+    assert "<td>$x$</td>" in html  # inline math left for client-side KaTeX
+    assert check_unsupported_body_syntax(body) == []

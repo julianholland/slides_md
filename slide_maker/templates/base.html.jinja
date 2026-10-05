@@ -29,7 +29,7 @@
 <img class="theme-watermark" src="{{ deck.theme_watermark }}" alt="" aria-hidden="true">
 {% endif %}
 {% for slide in slides %}
-<section class="slide{% if slide.layout == 'title' %} title-slide{% elif slide.layout == 'image' %} image-slide{% endif %}{% if slide.classes %} {{ slide.classes }}{% endif %}" id="{{ slide.id }}" data-display-index="{{ slide.display_index }}"{% if slide.phase_step is not none %} data-phase-step="{{ slide.phase_step }}" data-phase-step-count="{{ slide.phase_step_count }}"{% endif %}>
+<section class="slide{% if slide.layout == 'title' %} title-slide{% if not slide.background %} no-bg{% endif %}{% elif slide.layout == 'image' %} image-slide{% elif slide.layout == 'content' %} content-slide{% endif %}{% if slide.classes %} {{ slide.classes }}{% endif %}" id="{{ slide.id }}" data-display-index="{{ slide.display_index }}"{% if slide.phase_step is not none %} data-phase-step="{{ slide.phase_step }}" data-phase-step-count="{{ slide.phase_step_count }}"{% endif %}>
 {%- if slide.background %}
   <div class="bg-layer" style="background-image: url('{{ slide.background }}'); opacity: {{ slide.background_opacity }};{% if slide.layout == 'image' %} background-size: {{ slide.fit }};{% endif %}"{% if slide.layout == 'image' %} role="img" aria-label="{{ slide.image_alt }}"{% else %} aria-hidden="true"{% endif %}></div>
 {%- endif %}

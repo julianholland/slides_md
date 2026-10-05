@@ -192,7 +192,14 @@ def test_deck_with_no_citations_is_unaffected_by_unconfigured_bibliography(tmp_p
 
 # --- phase-in interaction --------------------------------------------------------
 
-def test_phase_in_slide_shows_same_footnotes_on_every_step(tmp_path):
+def _footnotes_per_physical_slide(html):
+    import re
+
+    sections = html.split('<section class="slide')[1:]
+    return [re.findall(r'citation-footnote-entry">([^<]*)', s) for s in sections]
+
+
+def test_phase_in_slide_shows_only_current_steps_footnotes(tmp_path):
     deck = """\
 ---
 layout: content
@@ -205,6 +212,77 @@ phase_in: true
 """
     result, html = _build(tmp_path, deck, BIB)
     assert result.slide_count == 3  # 2 bullets + 1 final step
-    assert html.count('<div class="citation-footnotes">') == 3
-    assert html.count("1. Smith, J. A.") == 3
-    assert html.count("2. Jones, A.") == 3
+    footnotes = _footnotes_per_physical_slide(html)
+    assert len(footnotes[0]) == 1 and footnotes[0][0].startswith("1. Smith")
+    assert len(footnotes[1]) == 1 and footnotes[1][0].startswith("2. Jones")
+
+
+def test_phase_in_final_step_shows_union_of_all_footnotes(tmp_path):
+    deck = """\
+---
+layout: content
+title: Rollout
+phase_in: true
+---
+
+- First point [@smith2020]
+- Second point [@jones2019]
+"""
+    _, html = _build(tmp_path, deck, BIB)
+    footnotes = _footnotes_per_physical_slide(html)
+    final = footnotes[2]
+    assert len(final) == 2
+    assert final[0].startswith("1. Smith")
+    assert final[1].startswith("2. Jones")
+
+
+def test_phase_in_ancestor_citation_and_first_child_share_step(tmp_path):
+    deck = """\
+---
+layout: content
+title: Nested
+phase_in: true
+phase_level: 2
+---
+
+- Section A [@smith2020]
+  - Point 1
+  - Point 2 [@jones2019]
+"""
+    result, html = _build(tmp_path, deck, BIB)
+    assert result.slide_count == 3  # 2 targets + 1 final step
+    footnotes = _footnotes_per_physical_slide(html)
+    # step 0: "Section A" (backfilled to Point 1's step) cites smith2020
+    assert len(footnotes[0]) == 1 and footnotes[0][0].startswith("1. Smith")
+    # step 1: "Point 2" is current, cites jones2019 only
+    assert len(footnotes[1]) == 1 and footnotes[1][0].startswith("2. Jones")
+    # final step: union of both
+    assert len(footnotes[2]) == 2
+
+
+def test_phase_in_image_reference_shown_only_on_its_own_steps(tmp_path):
+    deck = """\
+---
+layout: content
+title: Rollout
+phase_in: true
+phase_images:
+  - image: example-image-a
+    reference: smith2020
+  - image: example-image-b
+    reference: jones2019
+---
+
+- First point
+- Second point
+- Third point
+"""
+    _, html = _build(tmp_path, deck, BIB)
+    footnotes = _footnotes_per_physical_slide(html)
+    # 3 bullets -> steps 0,1,2 real, step 3 final; images clamp: step0->img0(smith),
+    # steps 1-3 -> img1 (jones, last entry, frozen)
+    assert len(footnotes[0]) == 1 and footnotes[0][0].startswith("1. Smith")
+    assert len(footnotes[1]) == 1 and footnotes[1][0].startswith("2. Jones")
+    assert len(footnotes[2]) == 1 and footnotes[2][0].startswith("2. Jones")
+    final = footnotes[3]
+    assert len(final) == 2

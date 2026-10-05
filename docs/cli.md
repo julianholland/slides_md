@@ -1,6 +1,15 @@
 # CLI Reference
 
 ```
+slides_md <input.md>          # build into build/ next to input, then serve it
+  [--force]                   # overwrite a non-empty output directory (needed to rebuild)
+  [-o DIR]                    # output directory instead of build/ next to input
+  [--port N]                  # default: 8000
+```
+
+`slides_md` is the quick preview shortcut; for every other option use the full command:
+
+```
 python -m slide_maker build <input.md> -o <output_dir>
   [--config deck.yaml]        # default: deck.yaml next to input, if present
   [--images-dir DIR]          # default: input file's directory

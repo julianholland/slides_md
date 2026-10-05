@@ -2,10 +2,10 @@
 
 ```bash
 pip install -e .
-python -m slide_maker build examples/demo/slides.md -o build/demo --serve
+slides_md examples/demo/slides.md            # add --force to rebuild over a previous build
 ```
 
-This builds `build/demo/index.html` (plus `assets/`, `vendor/katex/`, and
+This builds `examples/demo/build/index.html` (plus `assets/`, `vendor/katex/`, and
 `slide_images/`) and serves it at `http://localhost:8000`.
 
 `examples/demo/slides.md` (bundled with the repo) exercises all six layouts, background

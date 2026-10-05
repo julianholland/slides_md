@@ -6,6 +6,21 @@
   --accent: #f4c542;
   --accent-dim: #8a7228;
   --border: #3a3f4a;
+  /* title-slide text color only -- defaults to --fg so every existing theme/deck is
+     unaffected; a theme only needs to set this when its title-panel's fixed dark
+     translucent background (see .title-panel below) doesn't contrast with its
+     regular --fg (e.g. a light-bg theme whose --fg is a dark color). */
+  --title-fg: var(--fg);
+  /* text-transform for every h1 title, any layout -- 'none' matches original
+     behavior; a theme sets this to 'uppercase' etc. via its colors dict, same
+     generic key->CSS-custom-property plumbing as every other override. */
+  --title-transform: none;
+  /* text color for anything sitting on a --bg-panel background (blockquotes, fenced
+     and inline code, the formula box) -- defaults to --fg-muted, which is fine for
+     every existing dark-bg theme (fg-muted is light, bg-panel is dark), but a
+     light-bg theme can end up with a dark fg-muted that barely contrasts against its
+     own dark bg-panel, needing this set explicitly (e.g. fhi sets it to white). */
+  --panel-fg: var(--fg-muted);
 }
 
 * {
@@ -84,6 +99,7 @@ html, body {
   color: var(--accent);
   font-weight: 600;
   letter-spacing: 0.02em;
+  text-transform: var(--title-transform);
 }
 
 .slide h2.kicker {
@@ -169,7 +185,7 @@ ul.bullets ul li::before {
   border-radius: 6px;
   font-style: italic;
   font-size: 1.6rem;
-  color: var(--fg-muted);
+  color: var(--panel-fg);
   overflow-wrap: break-word;
   word-break: break-word;
 }
@@ -215,12 +231,48 @@ ul.bullets ul li::before {
   background: none;
   padding: 0;
   font-size: 1.3rem;
+  color: var(--panel-fg);
+}
+
+/* pipe tables - slightly smaller than bullet text so a few columns fit; accent header
+   rule, zebra rows on the same --bg-panel/--panel-fg pairing as blockquotes/code */
+.text-col table,
+.slide-body.stacked > table {
+  margin: 0.8em 0;
+  border-collapse: collapse;
+  font-size: 1.4rem;
+  overflow-wrap: break-word;
+  /* .slide-body.stacked is a stretch flex column: size to content, not full width */
+  align-self: flex-start;
+}
+
+.text-col th,
+.text-col td,
+.slide-body.stacked > table th,
+.slide-body.stacked > table td {
+  padding: 0.4em 0.9em;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.text-col th,
+.slide-body.stacked > table th {
+  color: var(--accent);
+  font-weight: 600;
+  border-bottom: 2px solid var(--accent);
+}
+
+.text-col tbody tr:nth-child(even),
+.slide-body.stacked > table tbody tr:nth-child(even) {
+  background: var(--bg-panel);
+  color: var(--panel-fg);
 }
 
 /* inline `code` spans (outside a fenced block) */
 code {
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
   background: var(--bg-panel);
+  color: var(--panel-fg);
   border-radius: 4px;
   padding: 0.1em 0.4em;
 }
@@ -233,7 +285,7 @@ code {
   border: 2px dashed var(--border);
   border-radius: 10px;
   background: var(--bg-panel);
-  color: var(--fg-muted);
+  color: var(--panel-fg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -359,6 +411,7 @@ code {
 .title-slide h1 {
   font-size: 4.2rem;
   margin-bottom: 0.2em;
+  color: var(--title-fg);
 }
 
 /* full-bleed image slide */
@@ -386,7 +439,7 @@ code {
 
 .title-slide .subtitle {
   font-size: 1.4rem;
-  color: var(--fg-muted);
+  color: var(--title-fg);
   margin: 0;
 }
 
@@ -398,9 +451,18 @@ code {
   backdrop-filter: blur(4px);
 }
 
+/* a title slide with no background image has nothing for the generic dark overlay
+   above to sit on top of -- use the theme's own panel color instead, so it isn't a
+   floating gray/charcoal box unrelated to the rest of the theme. A title slide *with*
+   a background keeps the neutral overlay, since it has to contrast against whatever
+   arbitrary photo is behind it. */
+.title-slide.no-bg .title-panel {
+  background: var(--bg-panel);
+}
+
 .meta {
   font-size: 1rem;
-  color: var(--fg-muted);
+  color: var(--title-fg);
   margin-top: 0.8em;
 }
 
@@ -413,6 +475,7 @@ code {
   border-radius: 6px;
   font-size: 1.4rem;
   overflow-x: auto;
+  color: var(--panel-fg);
 }
 
 .formula-note {
@@ -485,10 +548,27 @@ code {
   line-height: 1.4;
   color: var(--fg-muted);
   z-index: 10;
+  /* an opaque box in the page's own background -- media content (an image + a long
+     panel-label) can grow tall enough to reach this corner, and --bg is guaranteed to
+     contrast with --fg-muted (fg-muted is always chosen against --bg; --bg-panel
+     isn't, e.g. the fhi theme's fg-muted/bg-panel are both dark), so this stays
+     legible over whatever's underneath instead of visually colliding with it. */
+  background: var(--bg);
+  padding: 0.3em 0.7em;
+  border-radius: 6px;
 }
 
 .citation-footnotes a {
   color: var(--fg-muted);
+}
+
+/* content layout splits into .text-col (2fr) / .media-col (3fr) with a 4vw gap inside
+   .slide's 8vw side padding -- the default 55%-of-slide max-width above easily reaches
+   past .text-col's own right edge into .media-col, overlapping an image's own
+   panel-label there. Cap it to roughly .text-col's rendered width instead, so
+   footnotes stay on the text side they actually belong to. */
+.content-slide .citation-footnotes {
+  max-width: 30vw;
 }
 
 /* inline [@key] citation markers in body text */

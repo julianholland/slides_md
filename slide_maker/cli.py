@@ -67,5 +67,31 @@ def main(argv: list[str] | None = None) -> int:
     return 0
 
 
+def serve_main(argv: list[str] | None = None) -> int:
+    """`slides_md slides.md` — build into `<input dir>/build` and serve it."""
+    parser = argparse.ArgumentParser(prog="slides_md", description="Build a slide deck and serve it for viewing")
+    parser.add_argument("input", type=Path, help="Path to the slides.md file")
+    parser.add_argument("-o", "--output", type=Path, default=None, help="Output directory (default: build/ next to input)")
+    parser.add_argument("--force", action="store_true", help="Overwrite a non-empty output directory")
+    parser.add_argument("--port", type=int, default=8000, help="Port to serve on (default: 8000)")
+    args = parser.parse_args(argv)
+
+    output = args.output or args.input.parent / "build"
+    try:
+        result = build(input_path=args.input, output_dir=output, force=args.force)
+    except SlideMakerError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+
+    print_warnings(result.warnings)
+    print(f"built {result.slide_count} slide(s) -> {result.output_dir}/index.html")
+    print(f"serving at http://localhost:{args.port}/ (Ctrl+C to stop)")
+    try:
+        subprocess.run([sys.executable, "-m", "http.server", str(args.port)], cwd=result.output_dir, check=False)
+    except KeyboardInterrupt:
+        pass
+    return 0
+
+
 if __name__ == "__main__":
     raise SystemExit(main())

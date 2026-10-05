@@ -32,7 +32,8 @@ background: images/hero.jpg
 The body supports paragraphs, up to two levels of bullet lists, inline `**bold**` /
 `*em*` / inline code, inline KaTeX `$...$` (rendered client-side, so any valid LaTeX
 passes through untouched), and `> ` blockquotes (rendered as an italic grey callout box,
-matching the KaTeX formula box style). Don't use Markdown headings or `![]()` images in
+matching the KaTeX formula box style), and GFM pipe tables (`| a | b |` rows with a
+`|---|:-:|` separator line; column alignment and inline math in cells both work). Don't use Markdown headings or `![]()` images in
 the body — use the `title`/`kicker`/`image` fields instead (the generator warns if it
 sees either).
 
@@ -205,6 +206,14 @@ Citing a key that isn't in the bibliography, or citing anything at all with no
 `bibliography:` configured, is a build error — without `bibliography:` set, `[@...]`-
 shaped text is otherwise left completely untouched.
 
+**On a `phase_in` slide**, the footnote list only shows references belonging to
+whichever bullet or image is *currently* revealed at each step — not the whole slide's
+accumulated citations. A citation inside a dimmed or not-yet-revealed bullet doesn't
+show its footnote until that bullet is the current one; the final "everything undimmed"
+step shows the full combined list, same as a normal slide would. The inline `[1]`
+marker itself just dims/hides along with its bullet automatically, no special handling
+needed there.
+
 ## PDFs as images
 
 Any image-path field (`image`, `background`, `images[].image`, `panels[].image`,
@@ -256,6 +265,7 @@ watermark image in one line. Shipped presets:
 | `default` | The original dark/gold theme (used automatically if `theme:` is omitted — no visual change either way) |
 | `alomancy` | Dark, with ALomancy's brand violet (`#6C2FBE`) as the accent, the "Inter" font, and a subtle ALomancy logo watermark in the bottom-left corner of every slide |
 | `neuefische` | Dark violet background with Neuefische's brand orange (`#f44717`) as the accent, the "Poppins" font, and a subtle Neuefische logo watermark |
+| `fhi` | Light background with dark teal body text/panels, an olive-green (`#a5b631`) accent, the "Poppins" font, and a subtle FHI logo watermark — the one light-background preset, so its title slide overrides `title-fg` (see below) to stay legible |
 
 New presets are added by registering a `ThemeDefinition` in `slide_maker/themes.py` — see
 {doc}`api/schema` and {doc}`api/build` for how a resolved theme flows into a build; no
@@ -270,4 +280,8 @@ theme:
   accent: "#4cc9f0"
 ```
 
-Overridable keys: `bg`, `bg-panel`, `fg`, `fg-muted`, `accent`, `accent-dim`, `border`.
+Overridable keys: `bg`, `bg-panel`, `fg`, `fg-muted`, `accent`, `accent-dim`, `border`,
+and `title-fg` — the title slide's `h1`/`subtitle`/author-date text color, which
+defaults to `fg` and only needs setting if your `fg` doesn't contrast against the title
+slide's translucent dark panel (a fixed color, independent of the theme) — e.g. a
+light-background theme with a dark `fg`, like `fhi` above, which sets it to white.

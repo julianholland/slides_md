@@ -17,7 +17,8 @@ def _bullet_list_open(self, tokens, idx, options, env):  # noqa: ANN001
 
 
 def _make_md() -> MarkdownIt:
-    md = MarkdownIt("commonmark")
+    # GFM pipe tables are off in the commonmark preset; everything else stays strict CommonMark
+    md = MarkdownIt("commonmark").enable("table")
     md.add_render_rule("bullet_list_open", _bullet_list_open)
     return md
 
@@ -36,7 +37,7 @@ def check_unsupported_body_syntax(body: str) -> list[str]:
 
 
 def render_body(body: str) -> str:
-    """Render a slide body: paragraphs + up to 2 levels of bullets + inline formatting.
+    """Render a slide body: paragraphs, up to 2 levels of bullets, pipe tables, inline formatting.
 
     Inline `$...$` / block `$$...$$` KaTeX delimiters are left untouched — they are
     rendered client-side by KaTeX's auto-render against the DOM text nodes.

@@ -44,6 +44,7 @@ def test_build_demo_deck(tmp_path):
     # title bg + alpha content-slide bg + full-bleed image-layout slide
     assert html.count('class="bg-layer"') == 3
     assert html.count('class="formula-box"') == 1
+    assert html.count("<table>") == 1
     assert html.count('class="panel"') == 2
     assert html.count('class="slide image-slide"') == 1
     assert html.count('class="image-caption"') == 1
@@ -89,6 +90,14 @@ def test_blockquote_matches_body_text_size_and_wraps(tmp_path):
     blockquote_rule = css[css.index("blockquote,"):css.index("}", css.index("blockquote,"))]
     assert "font-size: 1.6rem;" in blockquote_rule
     assert "overflow-wrap: break-word;" in blockquote_rule
+
+
+def test_table_has_body_scoped_style(tmp_path):
+    out = tmp_path / "out"
+    build(input_path=DEMO_DIR / "slides.md", output_dir=out)
+    css = (out / "assets" / "style.css").read_text()
+    assert ".text-col table," in css
+    assert ".slide-body.stacked > table {" in css
 
 
 def test_background_image_uses_inline_style_not_css_custom_property(tmp_path):

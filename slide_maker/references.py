@@ -1,8 +1,14 @@
 """Citation/reference system: a `bibliography:` file (deck.yaml) supplies numbered
 references, cited from a slide body via `[@key]`/`[@key1; @key2]` or from an image via
 its `reference`/`image_reference` field. Numbers are assigned deck-wide, in first-cited
-order (`process_citations`, run once over the validated, pre-phase-expansion slide list
-so a phase-in slide's clones all share identical numbering/footnotes for free).
+order (`process_citations`, run once over the validated, pre-phase-expansion slide
+list). On a `phase_in` slide, a citation's *footnote* only shows on the step(s) whose
+bullet/image it belongs to (correlated via `phase_in.line_step_ranges`/`step_for_line`
+against the citation's source line) — the final "everything undimmed" step shows the
+union of every other step's citations. The inline `[1]` marker itself needs no such
+handling: it's literal text inside its bullet's `<li>`, so it already dims/hides
+exactly like the rest of that bullet via CSS. Numbering stays deck-global and
+step-independent — only which steps *display* a given citation's footnote varies.
 
 Two source formats, chosen by file extension (`load_bibliography`):
 
@@ -19,6 +25,7 @@ import re
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 
+from . import phase_in
 from .parser import SlideMakerError
 from .schema import SlideConfig
 
@@ -282,17 +289,39 @@ def process_citations(
     updated: list[SlideConfig] = []
     for slide in slide_configs:
         cited: list[int] = []
+        by_step: dict[int, list[int]] = {}
 
-        def note(number: int) -> None:
-            if number not in cited:
-                cited.append(number)
+        def note(number: int, step: int | None = None) -> None:
+            if step is None:
+                if number not in cited:
+                    cited.append(number)
+            else:
+                bucket = by_step.setdefault(step, [])
+                if number not in bucket:
+                    bucket.append(number)
+
+        # For a phase_in slide, a citation only belongs to the footnote of whichever
+        # step's bullet it's textually inside of -- "only show the current highlighted
+        # bullet/image's refs" (not the whole slide's accumulated set). Resolved via
+        # each bullet's source line span (phase_in.line_step_ranges), correlated
+        # against the citation's own line in the raw body.
+        ranges: list[tuple[int, int, int]] = []
+        target_count = 0
+        if slide.phase_in:
+            ranges, target_count = phase_in.line_step_ranges(slide.body, slide.phase_level)
 
         def substitute(match: re.Match, _slide=slide) -> str:
-            numbers = []
-            for key in _parse_keys(match.group(1)):
-                number = resolve(key, _slide.index)
-                note(number)
-                numbers.append(number)
+            numbers = [resolve(key, _slide.index) for key in _parse_keys(match.group(1))]
+            if _slide.phase_in:
+                line = _slide.body[: match.start()].count("\n")
+                step = phase_in.step_for_line(ranges, line)
+                steps = range(target_count + 1) if step is None else (step,)
+                for s in steps:
+                    for n in numbers:
+                        note(n, step=s)
+            else:
+                for n in numbers:
+                    note(n)
             links = [
                 f'<a href="{html.escape(ctx.by_number[n].doi_url)}" target="_blank" rel="noopener">{n}</a>'
                 if ctx.by_number[n].doi_url
@@ -303,12 +332,33 @@ def process_citations(
 
         new_body = _CITE_RE.sub(substitute, slide.body) if slide.body else slide.body
 
-        if slide.image_reference:
-            note(resolve(slide.image_reference, slide.index))
-        for panel in (*slide.images, *slide.panels, *slide.phase_images):
-            if panel.reference:
-                note(resolve(panel.reference, slide.index))
+        if slide.phase_in:
+            # A phase_images[i] entry's reference belongs to every step that actually
+            # displays that image -- the same clamp-to-last-entry rule expand_slide
+            # uses to pick each step's image.
+            n_images = len(slide.phase_images)
+            for i, panel in enumerate(slide.phase_images):
+                if not panel.reference:
+                    continue
+                number = resolve(panel.reference, slide.index)
+                for s in range(target_count + 1):
+                    if min(s, n_images - 1) == i:
+                        note(number, step=s)
+            # The final "everything undimmed" step shows the union of every other
+            # step's citations, matching every bullet/image being back on screen too.
+            union: list[int] = []
+            for s in range(target_count):
+                for n in by_step.get(s, []):
+                    if n not in union:
+                        union.append(n)
+            by_step[target_count] = union
+        else:
+            if slide.image_reference:
+                note(resolve(slide.image_reference, slide.index))
+            for panel in (*slide.images, *slide.panels):
+                if panel.reference:
+                    note(resolve(panel.reference, slide.index))
 
-        updated.append(replace(slide, body=new_body, citation_numbers=cited))
+        updated.append(replace(slide, body=new_body, citation_numbers=cited, citation_numbers_by_step=by_step))
 
     return updated, ctx

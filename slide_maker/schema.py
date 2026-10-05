@@ -67,6 +67,7 @@ class SlideConfig:
     phase_step: int | None = None
     phase_step_count: int | None = None
     citation_numbers: list[int] = field(default_factory=list)
+    citation_numbers_by_step: dict[int, list[int]] = field(default_factory=dict)
     body: str = ""
     warnings: list[str] = field(default_factory=list)
 

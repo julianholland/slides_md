@@ -3,7 +3,7 @@
 [![CI](https://github.com/julianholland/slides_md/actions/workflows/ci.yml/badge.svg)](https://github.com/julianholland/slides_md/actions/workflows/ci.yml)
 [![Documentation Status](https://readthedocs.org/projects/slides-md/badge/?version=latest)](https://slides-md.readthedocs.io/en/latest/?badge=latest)
 
-**📖 Full documentation: [slides-md.readthedocs.io](https://slides-md.readthedocs.io/)**
+**Full documentation: [slides-md.readthedocs.io](https://slides-md.readthedocs.io/)**
 
 Turn a single Markdown file into a static HTML slide deck. No client-side framework —
 just the same vanilla HTML/CSS/JS approach as the hand-built [`sulfur_slides`](../sulfur_slides)
@@ -14,10 +14,10 @@ vendored KaTeX for math, with no build step or CDN dependency in the output.
 
 ```bash
 pip install -e .
-python -m slide_maker build examples/demo/slides.md -o build/demo --serve
+slides_md examples/demo/slides.md            # add --force to rebuild over a previous build
 ```
 
-This builds `build/demo/index.html` (plus `assets/`, `vendor/katex/`, and
+This builds `examples/demo/build/index.html` (plus `assets/`, `vendor/katex/`, and
 `slide_images/`) and serves it at `http://localhost:8000`. `examples/demo/slides.md`
 exercises every layout and feature in one deck — a good starting point to copy from.
 
@@ -55,7 +55,8 @@ background: images/hero.jpg
 The body supports paragraphs, up to two levels of bullet lists, inline `**bold**` /
 `*em*` / inline code, inline KaTeX `$...$` (rendered client-side, so any valid LaTeX
 passes through untouched), and `> ` blockquotes (rendered as an italic grey callout box,
-matching the KaTeX formula box style). Don't use Markdown headings or `![]()` images in
+matching the KaTeX formula box style), and GFM pipe tables (`| a | b |` rows with a
+`|---|:-:|` separator line; column alignment and inline math in cells both work). Don't use Markdown headings or `![]()` images in
 the body — use the `title`/`kicker`/`image` fields instead (the generator warns if it
 sees either).
 
@@ -194,6 +195,10 @@ Citing a key that isn't in the bibliography, or citing anything at all with no
 `bibliography:` configured, is a build error — without `bibliography:` set, `[@...]`-
 shaped text is otherwise left completely untouched.
 
+On a `phase_in` slide, the footnote list only shows references for whichever bullet or
+image is *currently* revealed at each step — not the whole slide's accumulated
+citations — with the final "everything undimmed" step showing the full combined list.
+
 ### PDFs as images
 
 Any image-path field (`image`, `background`, `images[].image`, `panels[].image`,
@@ -242,6 +247,7 @@ bibliography: refs.bib       # numbered citations — see Citations & references
   | `default` | The original dark/gold theme (used automatically if `theme:` is omitted — no visual change either way) |
   | `alomancy` | Dark, with ALomancy's brand violet (`#6C2FBE`) as the accent, the "Inter" font, and a subtle ALomancy logo watermark in the bottom-left corner of every slide |
   | `neuefische` | Dark violet background with Neuefische's brand orange (`#f44717`) as the accent, the "Poppins" font, and a subtle Neuefische logo watermark |
+  | `fhi` | Light background with dark teal body text/panels, an olive-green (`#a5b631`) accent, the "Poppins" font, and a subtle FHI logo watermark — the one light-background preset, so its title slide overrides `title-fg` (see below) to stay legible |
 
   New presets are added by registering a `ThemeDefinition` in `slide_maker/themes.py` — see
   that module for the fields (`colors`, `font_body`, `watermark`).
@@ -253,9 +259,22 @@ bibliography: refs.bib       # numbered citations — see Citations & references
   theme:
     accent: "#4cc9f0"
   ```
-  Overridable keys: `bg`, `bg-panel`, `fg`, `fg-muted`, `accent`, `accent-dim`, `border`.
+  Overridable keys: `bg`, `bg-panel`, `fg`, `fg-muted`, `accent`, `accent-dim`, `border`,
+  and `title-fg` — the title slide's `h1`/`subtitle`/author-date text color, which
+  defaults to `fg` and only needs setting if `fg` doesn't contrast against the title
+  slide's translucent dark panel (a fixed color, independent of the theme) — e.g. a
+  light-background theme with a dark `fg`, like `fhi` above, which sets it to white.
 
 ## CLI
+
+```
+slides_md <input.md>          # build into build/ next to input, then serve it
+  [--force]                   # overwrite a non-empty output directory (needed to rebuild)
+  [-o DIR]                    # output directory instead of build/ next to input
+  [--port N]                  # default: 8000
+```
+
+`slides_md` is the quick preview shortcut; for every other option use the full command:
 
 ```
 python -m slide_maker build <input.md> -o <output_dir>

@@ -13,7 +13,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 # CSS custom-property names style.css/base.html.jinja already consume for slide colors.
-COLOR_KEYS = ("bg", "bg-panel", "fg", "fg-muted", "accent", "accent-dim", "border")
+COLOR_KEYS = (
+    "bg", "bg-panel", "fg", "fg-muted", "accent", "accent-dim", "border",
+    "title-fg", "title-transform", "panel-fg",
+)
 
 
 @dataclass
@@ -83,6 +86,33 @@ register_theme(
         },
         font_body='"Poppins", "Nunito Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
         watermark="themes/neuefische/watermark.png",
+        watermark_opacity=0.08,
+        watermark_size=0.05,
+    )
+)
+
+register_theme(
+    ThemeDefinition(
+        name="fhi",
+        colors={
+            "bg":"#eef0f3",
+            "bg-panel": "#005555",
+            # darker than bg-panel deliberately, not matching it.
+            "fg": "#29485d",
+            "fg-muted": "#29485d",
+            "accent": "#29485d",
+            "accent-dim": "#172833",
+            "border": "#29485d",
+            "title-fg": "#ffffff",  # title slide's h1/subtitle/date sit on a dark translucent
+                                    # panel regardless of theme -- white keeps them legible there
+            "title-transform": "uppercase",
+            # blockquotes/code/formula-box/placeholders sit on a --bg-panel background;
+            # fg-muted (#29485d) is too close to bg-panel (#005555) to read there, so
+            # this needs its own white override, same reasoning as title-fg above.
+            "panel-fg": "#ffffff",
+        },
+        font_body='Arial, "Helvetica Neue", "Segoe UI", sans-serif',
+        watermark="themes/fhi/fhi_watermark.png",
         watermark_opacity=0.08,
         watermark_size=0.05,
     )

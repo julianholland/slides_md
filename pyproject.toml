@@ -11,6 +11,7 @@ dependencies = [
 
 [project.scripts]
 slide-maker = "slide_maker.cli:main"
+slides_md = "slide_maker.cli:serve_main"
 
 [project.optional-dependencies]
 dev = ["pytest>=7.0", "ruff>=0.6", "pypdf>=4.0"]

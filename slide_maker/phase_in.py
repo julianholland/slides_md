@@ -88,6 +88,38 @@ def render_with_phase_tags(body: str, phase_level: int) -> tuple[str, int]:
     return html, target_count
 
 
+def line_step_ranges(body: str, phase_level: int) -> tuple[list[tuple[int, int, int]], int]:
+    """For a phase_in body, the source line span of every reveal-unit (target or
+    backfilled ancestor) and the step it resolves to — lets a caller correlate
+    something at a given source line (e.g. a citation) to the step whose bullet it
+    lives in. Ranges nest (an ancestor's span contains its children's); a line inside
+    more than one range belongs to the *smallest* (most specific) one. Returns
+    (ranges, target_count)."""
+    tokens = _MD.parse(body)
+    items = _parse_bullet_tree(tokens)
+    target_count = _resolve_steps(items, phase_level)
+    ranges = []
+    for entry in items:
+        if entry["step"] is not None:
+            tok_map = tokens[entry["token_idx"]].map
+            if tok_map:
+                ranges.append((tok_map[0], tok_map[1], entry["step"]))
+    return ranges, target_count
+
+
+def step_for_line(ranges: list[tuple[int, int, int]], line: int) -> int | None:
+    """The step of the smallest range in `ranges` (as returned by `line_step_ranges`)
+    containing `line`, or None if no range covers it."""
+    best_step = None
+    best_span = None
+    for start, end, step in ranges:
+        if start <= line < end:
+            span = end - start
+            if best_span is None or span < best_span:
+                best_step, best_span = step, span
+    return best_step
+
+
 def bullet_phase_classes(body_html: str, step: int, target_count: int) -> str:
     """Mark bullets `phase-dim`/`phase-pending` for reveal step `step` (0-indexed) of
     `target_count` targets. `step == target_count` is the final "everything
@@ -130,6 +162,7 @@ def expand_slide(slide: SlideConfig) -> list[SlideConfig]:
                 image_alt=image_entry.alt if image_entry else "",
                 image_label=image_entry.label if image_entry else None,
                 image_reference=image_entry.reference if image_entry else "",
+                citation_numbers=slide.citation_numbers_by_step.get(step, []),
             )
         )
     return clones

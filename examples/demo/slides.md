@@ -124,6 +124,11 @@ formula_note: Rendered client-side with vendored KaTeX (no CDN)
 - Inline math like $S(q)$ works directly in bullet text
 - Block equations use the dedicated `formula` field
 
+| Quantity | Symbol | Unit |
+|----------|:------:|-----:|
+| Rate     | $S(q)$ | 1/s  |
+| Energy   | $E$    | eV   |
+
 +++
 
 ---

@@ -18,6 +18,7 @@ pytest                                                      # run all tests
 pytest tests/test_build_end_to_end.py::test_build_demo_deck # run a single test
 ruff check .                                                # lint
 python -m slide_maker build examples/demo/slides.md -o build/demo --serve   # build + preview at :8000
+slides_md examples/demo/slides.md [--force]                               # shortcut: build to examples/demo/build/ + serve at :8000
 
 pip install -e ".[pdf]" && playwright install chromium      # needed for --pdf / --thumbnail
 python -m slide_maker build examples/demo/slides.md -o build/demo --pdf demo.pdf --thumbnail demo.png
@@ -73,7 +74,10 @@ guards against reintroducing it.
 
 **Markdown body rendering** (`render.py`): `markdown-it-py` with a `bullet_list_open`
 render-rule override that adds `class="bullets"` only when `token.level == 0`, so nested
-`<ul>`s stay bare and pick up the reference CSS's descendant-selector styling. Block
+`<ul>`s stay bare and pick up the reference CSS's descendant-selector styling. GFM pipe
+tables are enabled on top of the strict `commonmark` preset via `.enable("table")`
+(the preset has them off); `table` is also in `pdf.py`'s `_TEXT_SELECTOR` so `--pdf`'s
+auto-shrink covers them. Block
 math uses a separate `formula` YAML field (raw LaTeX, no `$$`) rather than `$$...$$` in
 the body, because CommonMark's underscore-emphasis parsing mangles LaTeX subscripts like
 `q_{min}`; inline `$...$` in the body is left untouched and rendered client-side by
@@ -164,6 +168,19 @@ decodes back; raw dict override *values*, which do come from user YAML, are vali
 instead (rejecting `<`, `>`, `{`, `}`, `;`, newlines) rather than marked safe, since they
 could otherwise break out of the `:root { ... }` rule.
 
+**`--title-fg`**: the title slide's `h1`/`.subtitle`/`.meta` (author/date) sit inside
+`.title-panel`, whose translucent dark background is a fixed `rgba(...)` in
+`style.css`, *not* theme-driven — so it doesn't automatically track a theme's `bg`/`fg`.
+Every other layout's title text stays on `--accent` (`.slide h1`) or `--fg`; only the
+title-slide overrides need a separate variable. `--title-fg` defaults to `var(--fg)` in
+`style.css`'s `:root` (so every existing theme/no-theme deck is byte-identical to
+before this existed) and only needs setting by a theme whose `fg` doesn't contrast
+against that fixed dark panel — e.g. `fhi`, a light-background theme, sets it to white.
+Plumbing is the existing generic mechanism (any key in a theme's `colors` dict, or a
+free-form `theme:` override dict, becomes `--{key}` in the `<style>` block) — no
+template or build.py change was needed, just the new CSS variable + the two selectors
+consuming it.
+
 **Phase-in reveal** (`phase_in: true`, `content` layout only, `slide_maker/phase_in.py`):
 one authored slide expands into several *physical* `<section class="slide">`s — one per
 bullet-reveal step, plus a final "everything undimmed" step — so keyboard/click nav and
@@ -210,19 +227,44 @@ image). Numbering + in-body substitution is its own pipeline pass
 (`references.process_citations`), run in `build.py` right after `validate_slide` and
 *before* `phase_in.expand_all` — deliberately: phase-in's clones share one `.body` string
 via `dataclasses.replace`, so substituting `[@key]` once, pre-expansion, means every
-physical step of a phase-in slide gets the identical already-numbered markup and the
-identical footnote set for free (a deliberate simplification — footnotes don't try to
-track which bullets have actually revealed yet on a given step). Numbers are assigned
-lazily, first-seen order, scanning each slide's body text first, then its image-bearing
-fields in field order (`image_reference`, then `images[]`/`panels[]`/`phase_images[]`
-entries) — citing an unknown key, or citing anything at all with no `bibliography:`
-configured, is a fatal `SlideMakerError`, not a warning. The `[@key]` substitution
-writes the *final* `<sup class="citation">[...]</sup>` markup (numbers already resolved)
-directly into the raw body text before `render_body()` ever runs, relying on
-markdown-it-py's `commonmark` preset passing raw HTML through untouched by default (the
-same mechanism the `examples/cheatsheet/slides.md` `<code>&lt;!--...--&gt;</code>` trick
-uses) — this needs no placeholder-then-patch two-pass approach, since numbering is fully
-known upfront. A new `layout: references` slide (`slide_references.html.jinja`) renders
+physical step of a phase-in slide gets the identical already-numbered markup for free.
+Numbers are assigned lazily, first-seen order, scanning each slide's body text first,
+then its image-bearing fields in field order (`image_reference`, then
+`images[]`/`panels[]`/`phase_images[]` entries) — citing an unknown key, or citing
+anything at all with no `bibliography:` configured, is a fatal `SlideMakerError`, not a
+warning. The `[@key]` substitution writes the *final* `<sup class="citation">[...]</sup>`
+markup (numbers already resolved) directly into the raw body text before `render_body()`
+ever runs, relying on markdown-it-py's `commonmark` preset passing raw HTML through
+untouched by default (the same mechanism the `examples/cheatsheet/slides.md`
+`<code>&lt;!--...--&gt;</code>` trick uses) — this needs no placeholder-then-patch
+two-pass approach, since numbering is fully known upfront.
+
+**Phase-in-aware footnotes**: a citation's *inline* `[1]` marker needs no phase-in
+handling at all — it's literal text inside its bullet's `<li>`, so `.phase-dim`/
+`.phase-pending` on that `<li>` cascades to it for free, same as any other bullet
+content. The *footnote* list (bottom-left) is different: it only shows references
+belonging to whichever bullet/image is current at each step, not the slide's whole
+accumulated set. `references.process_citations` resolves this by correlating each
+`[@key]` match's source *line* (`body[:match.start()].count("\n")`) against
+`phase_in.line_step_ranges`/`step_for_line` — the same bullet-tree walk
+`render_with_phase_tags` uses, exposed separately so the line-span (markdown-it's
+`token.map`) of every reveal-unit (including backfilled ancestors) can be checked for
+the smallest range containing that line (nested ranges mean a child's span is always
+more specific than its ancestor's, so "smallest containing range" picks correctly
+without extra bookkeeping). A citation whose line isn't covered by any tracked bullet
+(stray body text outside the list) falls back to showing on every step, never silently
+dropped. `phase_images[i].reference` footnotes use the identical clamp-to-last-entry
+rule `expand_slide` already uses to pick each step's image, so an image's citation only
+shows while that image is actually on screen. The result — a `dict[int, list[int]]`
+(`SlideConfig.citation_numbers_by_step`) keyed by step — is consulted by
+`phase_in.expand_slide` when cloning (`citation_numbers=slide.citation_numbers_by_step
+.get(step, [])`, overriding the flat default per clone); `build.py`/templates need no
+changes, since they only ever read the already-resolved `slide.citation_numbers`.
+The final "everything undimmed" step shows the *union* of every other step's citations
+(computed once per slide, not re-derived), matching that step's bullets/images all
+being back on screen simultaneously too.
+
+A new `layout: references` slide (`slide_references.html.jinja`) renders
 the full deck-ordered bibliography from a `references=` value passed into
 `template.render()` directly (not nested under `deck`, since it's build-computed state,
 not a `deck.yaml` setting) — nothing is auto-injected; the author places this slide
@@ -261,13 +303,24 @@ on `_TEXT_SELECTOR`/`_FIT_JS` for why `transform` and a minimum-scale floor were
 tried and rejected (Chromium's print paginator fragments based on unscaled layout height,
 duplicating/overlapping content across a forced page break). `export_thumbnail` is
 simpler — no print emulation or fit logic — since it only screenshots slide 1 at a fixed
-`viewport` (default 1600x900) and the deck always opens there; both are exercised by
+`viewport` (default 1600x900) and the deck always opens there. It does, however, need
+its own paint-completion wait beyond `page.goto(..., wait_until="networkidle")`:
+`assets/script.js`'s hidden (`display:none`) slides still fetch their own `<img>`s (the
+browser loads image resources regardless of visibility), so a many-slide/many-image deck
+can reach network-idle while slide 1's *own* image(s) are still decoding/compositing —
+`networkidle` only tracks in-flight requests, not paint. `_WAIT_FOR_ACTIVE_SLIDE_PAINTED_JS`
+(`page.wait_for_function`) polls until every `<img>` inside `.slide.active` is
+`.complete`, and — since a `background-image` set via inline `style` (the `.bg-layer`
+mechanism, not an `<img>` tag) has no DOM API for "is this decoded" — races a throwaway
+`new Image()` probe against the browser's own cache for that same URL. Found via a real
+report of a heavy (30+ image) deck occasionally thumbnailing an unpainted/wrong-looking
+frame; both are exercised by
 `tests/test_pdf_export.py` / `tests/test_thumbnail_export.py`, which `pytest.importorskip`
 Playwright and skip outright if Chromium isn't installed locally.
 
 `examples/demo/slides.md` exercises all six layouts + background alpha + image pairs +
 placeholder images + phase-in reveal + citations/references + `<!-- -->` comments
-(inline and a whole commented-out slide) + blockquotes + KaTeX, and doubles as the
+(inline and a whole commented-out slide) + blockquotes + a pipe table + KaTeX, and doubles as the
 primary integration-test fixture
 (`tests/test_build_end_to_end.py`) — keep it in sync when adding fields/layouts. See
 `README.md` for the full per-slide field reference and CLI flags.
