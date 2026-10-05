@@ -286,3 +286,68 @@ def test_phase_level_must_be_positive_int(tmp_path):
     deck = "---\nlayout: content\ntitle: X\nphase_in: true\nphase_level: 0\n---\n\n- A\n"
     with pytest.raises(SlideMakerError, match="phase_level must be an integer >= 1"):
         _build(tmp_path, deck)
+
+
+# --- phase_images entries holding an `images` pair -----------------------------
+
+PAIR_DECK = """\
+---
+layout: content
+title: Pairs
+phase_in: true
+phase_images:
+  - image: example-image-a
+    alt: Single
+  - images:
+    - image: example-image-b
+      alt: Left
+    - image: example-image-c
+      alt: Right
+---
+
+- First
+- Second
+"""
+
+
+def test_phase_images_entry_can_be_an_image_pair(tmp_path):
+    result, html = _build(tmp_path, PAIR_DECK, strict=True)
+    assert result.slide_count == 3
+    first, second, final = _sections(html)
+    assert "example-image-a.png" in first and "image-grid" not in first
+    for sec in (second, final):  # step 2 and the final step clamp to the pair
+        assert 'class="image-grid"' in sec
+        assert 'src="slide_images/example-image-b.png"' in sec
+        assert 'src="slide_images/example-image-c.png"' in sec
+        assert "example-image-a.png" not in sec
+
+
+def test_phase_images_group_needs_at_least_two(tmp_path):
+    deck = PAIR_DECK.replace("    - image: example-image-c\n      alt: Right\n", "")
+    with pytest.raises(SlideMakerError, match=r"phase_images\[1\]\.images needs at least 2"):
+        _build(tmp_path, deck)
+
+
+def test_phase_images_group_of_three(tmp_path):
+    deck = PAIR_DECK.replace(
+        "    - image: example-image-c\n      alt: Right\n",
+        "    - image: example-image-c\n      alt: Right\n    - image: example-image-d\n      alt: Extra\n",
+    )
+    _, html = _build(tmp_path, deck, strict=True)
+    second = _sections(html)[1]
+    assert second.count('class="image-grid-item"') == 3
+
+
+def test_phase_images_pair_rejected_on_image_layout(tmp_path):
+    deck = (
+        "---\nlayout: image\nphase_in: true\nphase_images:\n"
+        "  - images:\n    - image: example-image-a\n    - image: example-image-b\n---\n"
+    )
+    with pytest.raises(SlideMakerError, match="only supported on layout 'content'"):
+        _build(tmp_path, deck)
+
+
+def test_phase_images_entry_without_image_is_a_clear_error(tmp_path):
+    deck = "---\nlayout: content\ntitle: X\nphase_in: true\nphase_images:\n  - alt: oops\n---\n\n- A\n"
+    with pytest.raises(SlideMakerError, match=r"phase_images\[0\] must be a mapping with an 'image' field"):
+        _build(tmp_path, deck)

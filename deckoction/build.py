@@ -98,15 +98,49 @@ def _alt_text(explicit: str, source: str, fallback: str = "") -> str:
     return explicit or placeholders.placeholder_alt(source) or fallback
 
 
-def choose_image_pair_arrangement(ratio_a: float, ratio_b: float) -> str:
-    """Pick 'stack' (vertical) or 'side' (horizontal) for a 2-image pair.
+# Assumed aspect (width / height) of a content slide's `.media-col`: on a 16:9 slide
+# it takes 3/5 of the width beside the bullets and the height left under the title.
+MEDIA_BOX_ASPECT = 1.4
+# How strongly arrange_images favours equal-sized images over filling the box.
+BALANCE_WEIGHT = 0.5
 
-    Scaled to a common height of 1, laying the images side by side gives a
-    combined width of ratio_a + ratio_b. If that combination would be wider
-    than it is tall, each image would get squeezed thin in the media column,
-    so stack them vertically instead; otherwise side by side already fits.
+
+def _row_splits(n: int):
+    """Every way to cut n images (in order) into consecutive non-empty rows."""
+    for mask in range(2 ** (n - 1)):
+        sizes, run = [], 1
+        for i in range(n - 1):
+            if mask >> i & 1:
+                sizes.append(run)
+                run = 1
+            else:
+                run += 1
+        sizes.append(run)
+        yield sizes
+
+
+def arrange_images(ratios: list[float], box_aspect: float = MEDIA_BOX_ASPECT) -> list[int]:
+    """Pick row sizes (e.g. [2, 2]) for images with aspect `ratios`, in reading order.
+
+    Each row is justified: its images share one height and span the full width, so at
+    width 1 a row of summed aspect S is 1/S tall. The whole block is scaled to fit a
+    `box_aspect` x 1 box; each layout is scored on how much of the box the images fill
+    and on how close the smallest image's area is to the largest's.
     """
-    return "stack" if (ratio_a + ratio_b) > 1.0 else "side"
+    best, best_score = [len(ratios)], -1.0
+    for sizes in _row_splits(len(ratios)):
+        rows, start = [], 0
+        for size in sizes:
+            rows.append(ratios[start:start + size])
+            start += size
+        total_height = sum(1 / sum(row) for row in rows)
+        scale = min(box_aspect, 1 / total_height)
+        areas = [(scale / sum(row)) ** 2 * r for row in rows for r in row]
+        fill = sum(areas) / box_aspect
+        score = fill * (min(areas) / max(areas)) ** BALANCE_WEIGHT
+        if score > best_score + 1e-9:
+            best, best_score = sizes, score
+    return best
 
 
 def _citation_badge(key: str, citations: CitationContext) -> SimpleNamespace | None:
@@ -148,26 +182,32 @@ def _slide_context(
     if slide.layout != "image" and slide.image:
         image = resolver.resolve(slide.image, slide.index)
 
-    images = []
-    image_pair_arrangement = None
+    # Rows of an `images` grid (see arrange_images). Each row's and item's `grow` is its
+    # inline CSS flex-grow, normalized to sum to 1 per container: flex-grow values summing
+    # to less than 1 only hand out that fraction of the free space, leaving blank bands.
+    image_rows = []
     if slide.images:
-        dest_a, (wa, ha) = resolver.resolve_with_size(slide.images[0].image, slide.index)
-        dest_b, (wb, hb) = resolver.resolve_with_size(slide.images[1].image, slide.index)
-        image_pair_arrangement = choose_image_pair_arrangement(wa / ha, wb / hb)
-        images = [
-            SimpleNamespace(
-                src=dest_a,
-                alt=_alt_text(slide.images[0].alt, slide.images[0].image),
-                label=slide.images[0].label,
-                reference=_citation_badge(slide.images[0].reference, citations),
-            ),
-            SimpleNamespace(
-                src=dest_b,
-                alt=_alt_text(slide.images[1].alt, slide.images[1].image),
-                label=slide.images[1].label,
-                reference=_citation_badge(slide.images[1].reference, citations),
-            ),
-        ]
+        items, ratios = [], []
+        for p in slide.images:
+            dest, (w, h) = resolver.resolve_with_size(p.image, slide.index)
+            ratios.append(w / h)
+            items.append(
+                SimpleNamespace(
+                    src=dest,
+                    alt=_alt_text(p.alt, p.image),
+                    label=p.label,
+                    reference=_citation_badge(p.reference, citations),
+                )
+            )
+        start, rows = 0, []
+        for size in arrange_images(ratios):
+            rows.append((items[start:start + size], ratios[start:start + size]))
+            start += size
+        heights = [1 / sum(row_ratios) for _, row_ratios in rows]
+        for (row_items, row_ratios), height in zip(rows, heights):
+            for item, ratio in zip(row_items, row_ratios):
+                item.grow = round(ratio / sum(row_ratios), 4)
+            image_rows.append(SimpleNamespace(grow=round(height / sum(heights), 4), items=row_items))
 
     panels = [
         SimpleNamespace(
@@ -211,8 +251,7 @@ def _slide_context(
         image_alt=_alt_text(slide.image_alt, slide.image or ""),
         image_label=slide.image_label,
         image_reference=_citation_badge(slide.image_reference, citations),
-        images=images,
-        image_pair_arrangement=image_pair_arrangement,
+        image_rows=image_rows,
         video=slide.video,
         panels=panels,
         background=background,

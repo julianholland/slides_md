@@ -341,13 +341,14 @@ def process_citations(
             # displays that image -- the same clamp-to-last-entry rule expand_slide
             # uses to pick each step's image.
             n_images = len(slide.phase_images)
-            for i, panel in enumerate(slide.phase_images):
-                if not panel.reference:
-                    continue
-                number = resolve(panel.reference, slide.index)
-                for s in range(step_count):
-                    if min(s, n_images - 1) == i:
-                        note(number, step=s)
+            for i, entry in enumerate(slide.phase_images):
+                for panel in entry:
+                    if not panel.reference:
+                        continue
+                    number = resolve(panel.reference, slide.index)
+                    for s in range(step_count):
+                        if min(s, n_images - 1) == i:
+                            note(number, step=s)
             # A split panel's reference belongs to the step that reveals that panel.
             if slide.layout == "split":
                 for i, panel in enumerate(slide.panels):

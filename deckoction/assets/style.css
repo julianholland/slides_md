@@ -330,27 +330,26 @@ code {
   min-height: 0;
 }
 
-/* two-image pair: stacked or side-by-side, chosen at build time from aspect ratio */
-.image-pair {
+/* image grid: rows chosen at build time (build.py:arrange_images); inline flex-grow on
+   each row (1 / summed aspect) and item (its aspect) reproduces justified rows */
+.image-grid {
   display: flex;
+  flex-direction: column;
   width: 100%;
   height: 100%;
   gap: 1.2em;
-  align-items: center;
   justify-content: center;
 }
 
-.image-pair.stack {
-  flex-direction: column;
+.image-grid-row {
+  display: flex;
+  min-height: 0;
+  gap: 1.2em;
+  justify-content: center;
 }
 
-.image-pair.side {
-  flex-direction: row;
-}
-
-.image-pair-item {
+.image-grid-item {
   position: relative;
-  flex: 1;
   min-width: 0;
   min-height: 0;
   height: 100%;
@@ -360,7 +359,7 @@ code {
   gap: 0.5em;
 }
 
-.image-pair-item img {
+.image-grid-item img {
   flex: 1;
   min-width: 0;
   min-height: 0;
@@ -524,7 +523,7 @@ code {
 
 /* citations: a small numbered chip on the image it was called on (top-right of that
    image's own container -- see the `position: relative` added to .media-item /
-   .image-pair-item / .split-panels .panel-media above) or, for the full-bleed `image`
+   .image-grid-item / .split-panels .panel-media above) or, for the full-bleed `image`
    layout (which has no per-image wrapper of its own), on the slide itself. */
 .citation-badge {
   position: absolute;

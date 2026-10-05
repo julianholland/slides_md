@@ -64,7 +64,9 @@ class SlideConfig:
     classes: str = ""
     phase_in: bool = False
     phase_level: int = 1
-    phase_images: list[Panel] = field(default_factory=list)
+    # One entry per reveal step: a single image (1 Panel) or, on `content`, an `images`
+    # group (2+ Panels, laid out like the `images` field).
+    phase_images: list[list[Panel]] = field(default_factory=list)
     phase_step: int | None = None
     phase_step_count: int | None = None
     citation_numbers: list[int] = field(default_factory=list)
@@ -154,6 +156,28 @@ def _check_opacity(fm: dict, idx: int, strict: bool, warnings: list[str]) -> flo
     return opacity
 
 
+def _panel(d, where: str, idx: int) -> Panel:
+    if not isinstance(d, dict) or "image" not in d:
+        raise SlideMakerError(f"{where} must be a mapping with an 'image' field", slide_index=idx)
+    return Panel(image=d["image"], label=d.get("label", ""), alt=d.get("alt", ""), reference=d.get("reference", ""))
+
+
+def _phase_image_entry(entry, i: int, layout: str, idx: int) -> list[Panel]:
+    """One `phase_images` entry: `{image, ...}` (one image) or `{images: [{image, ...}, ...]}`
+    (2+ images shown together on that step, `content` layout only)."""
+    where = f"phase_images[{i}]"
+    if not isinstance(entry, dict) or "images" not in entry:
+        return [_panel(entry, where, idx)]
+    if layout != "content":
+        raise SlideMakerError(f"{where}: an 'images' group is only supported on layout 'content'", slide_index=idx)
+    if "image" in entry:
+        raise SlideMakerError(f"{where} may set 'image' or 'images', not both", slide_index=idx)
+    items = entry["images"]
+    if not isinstance(items, list) or len(items) < 2:
+        raise SlideMakerError(f"{where}.images needs at least 2 images (use 'image' for one)", slide_index=idx)
+    return [_panel(d, f"{where}.images[{j}]", idx) for j, d in enumerate(items)]
+
+
 def validate_slide(raw_slide: RawSlide, deck: DeckConfig, strict: bool) -> SlideConfig:
     fm = raw_slide.frontmatter
     idx = raw_slide.index
@@ -222,17 +246,16 @@ def validate_slide(raw_slide: RawSlide, deck: DeckConfig, strict: bool) -> Slide
     if "phase_level" in fm and layout not in ("content", "stacked"):
         raise SlideMakerError("phase_level is only used by layouts 'content' and 'stacked'", slide_index=idx)
 
-    phase_images = [
-        Panel(image=p["image"], label=p.get("label", ""), alt=p.get("alt", ""), reference=p.get("reference", ""))
-        for p in (fm.get("phase_images") or [])
-    ]
+    phase_images = [_phase_image_entry(p, i, layout, idx) for i, p in enumerate(fm.get("phase_images") or [])]
     if "phase_images" in fm and not phase_in:
         raise SlideMakerError("phase_images set without phase_in", slide_index=idx)
     if "phase_images" in fm and layout not in ("content", "image"):
         raise SlideMakerError("phase_images is only used by layouts 'content' and 'image'", slide_index=idx)
-    for i, item in enumerate(phase_images):
-        if not item.alt and not placeholders.resolve_placeholder(item.image):
-            msg = f"phase_images[{i}] set without alt"
+    for i, entry in enumerate(phase_images):
+        for j, item in enumerate(entry):
+            if item.alt or placeholders.resolve_placeholder(item.image):
+                continue
+            msg = f"phase_images[{i}] set without alt" if len(entry) == 1 else f"phase_images[{i}].images[{j}] set without alt"
             if strict:
                 raise SlideMakerError(msg, slide_index=idx)
             warnings.append(msg)
@@ -284,9 +307,9 @@ def validate_slide(raw_slide: RawSlide, deck: DeckConfig, strict: bool) -> Slide
                 + ", ".join(media_fields),
                 slide_index=idx,
             )
-        if slide.images and len(slide.images) != 2:
+        if slide.images and len(slide.images) < 2:
             raise SlideMakerError(
-                f"'images' currently supports exactly 2 images (got {len(slide.images)})",
+                f"'images' needs at least 2 images (got {len(slide.images)}; use 'image' for one)",
                 slide_index=idx,
             )
         if phase_in and not slide.body.strip():

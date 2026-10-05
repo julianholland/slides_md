@@ -22,7 +22,7 @@ Read the Docs builds separately from this CI (tolerating warnings, per
 `.readthedocs.yaml`'s `fail_on_warning: false`) — the `docs` CI job is a stricter local
 gate that catches doc breakage before it ever reaches RTD.
 
-`examples/demo/slides.md` exercises all six layouts, background alpha, image pairs,
+`examples/demo/slides.md` exercises all six layouts, background alpha, image groups,
 citations, and KaTeX in one deck, and doubles as the primary integration-test fixture
 (`tests/test_build_end_to_end.py`) — keep it in sync when adding fields/layouts.
 
@@ -36,7 +36,7 @@ layout's Jinja template (`layouts.py` maps layout name → template) → assembl
 only the images actually referenced into `<output>/slide_images/`.
 
 For the full internals reference (why block math is a separate `formula` field, the
-two-image aspect-ratio heuristic, the click-to-zoom lightbox implementation, and so on),
+`images` grid arrangement, the click-to-zoom lightbox implementation, and so on),
 see `CLAUDE.md` at the repository root — it's written for AI coding agents working in
 this codebase, but is equally useful background for a human contributor.
 

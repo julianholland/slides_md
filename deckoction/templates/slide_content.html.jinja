@@ -19,13 +19,17 @@
     </div>
     {%- elif slide.video %}
     <video src="{{ slide.video }}" controls></video>
-    {%- elif slide.images %}
-    <div class="image-pair {{ slide.image_pair_arrangement }}">
-      {%- for img in slide.images %}
-      <div class="image-pair-item">
-        <img src="{{ img.src }}" alt="{{ img.alt }}">
-        {%- if img.label %}<div class="panel-label">{{ img.label }}</div>{% endif %}
-        {%- if img.reference %}<span class="citation-badge">{% if img.reference.doi_url %}<a href="{{ img.reference.doi_url }}" target="_blank" rel="noopener">{{ img.reference.number }}</a>{% else %}{{ img.reference.number }}{% endif %}</span>{% endif %}
+    {%- elif slide.image_rows %}
+    <div class="image-grid">
+      {%- for row in slide.image_rows %}
+      <div class="image-grid-row" style="flex: {{ row.grow }} 1 0">
+        {%- for img in row.items %}
+        <div class="image-grid-item" style="flex: {{ img.grow }} 1 0">
+          <img src="{{ img.src }}" alt="{{ img.alt }}">
+          {%- if img.label %}<div class="panel-label">{{ img.label }}</div>{% endif %}
+          {%- if img.reference %}<span class="citation-badge">{% if img.reference.doi_url %}<a href="{{ img.reference.doi_url }}" target="_blank" rel="noopener">{{ img.reference.number }}</a>{% else %}{{ img.reference.number }}{% endif %}</span>{% endif %}
+        </div>
+        {%- endfor %}
       </div>
       {%- endfor %}
     </div>

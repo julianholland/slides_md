@@ -325,3 +325,28 @@ phase_images:
     assert len(footnotes[0]) == 1 and footnotes[0][0].startswith("1. Smith")
     assert footnotes[1] == []
     assert html.count("image-layout-badge") == 1
+
+
+def test_content_phase_in_image_pair_references_show_on_their_step(tmp_path):
+    deck = """\
+---
+layout: content
+title: Pair refs
+phase_in: true
+phase_images:
+  - image: example-image-a
+  - images:
+    - image: example-image-b
+      reference: smith2020
+    - image: example-image-c
+      reference: jones2019
+---
+
+- First
+- Second
+"""
+    _, html = _build(tmp_path, deck, BIB)
+    footnotes = _footnotes_per_physical_slide(html)
+    assert footnotes[0] == []
+    assert len(footnotes[1]) == 2
+    assert html.count("citation-badge") == 4  # pair badges on step 2 + final step

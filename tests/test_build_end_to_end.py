@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from deckoction.build import build
+from deckoction.build import arrange_images, build
 from deckoction.parser import SlideMakerError
 
 DEMO_DIR = Path(__file__).resolve().parents[1] / "examples" / "demo"
@@ -21,6 +21,11 @@ def write_png(path: Path, width: int, height: int) -> None:
     idat = zlib.compress(raw)
     data = b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", ihdr) + chunk(b"IDAT", idat) + chunk(b"IEND", b"")
     path.write_bytes(data)
+
+
+def grid_rows(html: str) -> list[int]:
+    """Images per `.image-grid-row`, in document order, across the whole deck."""
+    return [chunk.split("</section>")[0].count('class="image-grid-item"') for chunk in html.split('class="image-grid-row"')[1:]]
 
 
 def test_build_demo_deck(tmp_path):
@@ -56,8 +61,8 @@ def test_build_demo_deck(tmp_path):
     assert html.count('class="slide image-slide"') == 4
     assert html.count('class="image-caption"') == 4
 
-    # screenshot_a/b are 400x900 portraits: ratio sum 0.44+0.44 <= 1 -> side by side
-    assert html.count('class="image-pair side"') == 1
+    # screenshot_a/b are 400x900 portraits -> one row, side by side
+    assert html.count('class="image-grid"') == 3  # the `images` slide + 2 phase-in group steps
 
     # click-to-zoom lightbox is always present, once
     assert html.count('id="lightbox"') == 1
@@ -76,7 +81,7 @@ def test_build_demo_deck(tmp_path):
     images = sorted(p.name for p in (out / "slide_images").iterdir())
     assert images == [
         "after.png", "before.png", "diagram.png", "example-image-a.png",
-        "example-image-b.png", "example-image-c.png", "hero.jpg",
+        "example-image-b.png", "example-image-c.png", "example-image-d.png", "hero.jpg",
         "screenshot_a.png", "screenshot_b.png", "watermark.png",
     ]
 
@@ -177,7 +182,7 @@ def test_image_pair_stacks_when_wider_images(tmp_path):
     result = build(input_path=src, output_dir=tmp_path / "out")
     assert result.warnings == []
     html = (tmp_path / "out" / "index.html").read_text()
-    assert 'class="image-pair stack"' in html
+    assert grid_rows(html) == [1, 1]  # stacked
     assert html.count("<img") == 3  # 2 content images + the lightbox's empty <img>
     assert 'id="lightbox"' in html
 
@@ -193,7 +198,7 @@ def test_image_pair_sits_side_by_side_when_narrow_images(tmp_path):
     result = build(input_path=src, output_dir=tmp_path / "out")
     assert result.warnings == []
     html = (tmp_path / "out" / "index.html").read_text()
-    assert 'class="image-pair side"' in html
+    assert grid_rows(html) == [2]  # side by side
 
 
 def test_single_image_label_renders_as_caption(tmp_path):
@@ -224,17 +229,53 @@ def test_image_pair_labels_render_per_item(tmp_path):
     result = build(input_path=src, output_dir=tmp_path / "out")
     assert result.warnings == []
     html = (tmp_path / "out" / "index.html").read_text()
-    assert html.count('class="image-pair-item"') == 2
+    assert html.count('class="image-grid-item"') == 2
     assert '<div class="panel-label">Before</div>' in html
     assert '<div class="panel-label">After</div>' in html
 
 
-def test_images_requires_exactly_two(tmp_path):
+def test_images_requires_at_least_two(tmp_path):
     write_png(tmp_path / "a.png", 400, 900)
     src = tmp_path / "slides.md"
     src.write_text("---\nlayout: content\ntitle: Pair\nimages:\n  - image: a.png\n---\nbody\n")
-    with pytest.raises(SlideMakerError, match="exactly 2 images"):
+    with pytest.raises(SlideMakerError, match="needs at least 2 images"):
         build(input_path=src, output_dir=tmp_path / "out")
+
+
+@pytest.mark.parametrize(
+    ("ratios", "rows"),
+    [
+        ([1, 1, 1], [3]),
+        ([1, 1, 1, 1], [2, 2]),
+        ([16 / 9, 16 / 9], [1, 1]),
+        ([0.8, 0.8], [2]),
+        ([1] * 6, [3, 3]),
+        ([16 / 9] * 4, [2, 2]),
+    ],
+)
+def test_arrange_images(ratios, rows):
+    assert arrange_images(ratios) == rows
+
+
+def test_arrange_images_sizes_always_cover_every_image_in_order():
+    for n in range(1, 9):
+        assert sum(arrange_images([1.3] * n)) == n
+
+
+def test_four_images_build_a_two_by_two_grid_in_source_order(tmp_path):
+    for name in "abcd":
+        write_png(tmp_path / f"{name}.png", 400, 400)
+    src = tmp_path / "slides.md"
+    src.write_text(
+        "---\nlayout: content\ntitle: Grid\nimages:\n"
+        + "".join(f"  - image: {n}.png\n    alt: {n}\n" for n in "abcd")
+        + "---\nbody\n"
+    )
+    build(input_path=src, output_dir=tmp_path / "out", strict=True)
+    html = (tmp_path / "out" / "index.html").read_text()
+    assert grid_rows(html) == [2, 2]
+    positions = [html.index(f'src="slide_images/{n}.png"') for n in "abcd"]
+    assert positions == sorted(positions)
 
 
 def test_images_mutually_exclusive_with_image(tmp_path):

@@ -125,6 +125,6 @@ def test_pdf_in_images_pair_uses_rasterized_dimensions(tmp_path):
 
     assert result.warnings == []
     html = (out / "index.html").read_text()
-    assert 'class="image-pair side"' in html  # 0.44+0.44 ratio sum <= 1 -> side by side
+    assert html.count('class="image-grid-row"') == 1  # two 0.44 portraits -> one row
     assert (out / "slide_images" / "a.png").exists()
     assert (out / "slide_images" / "b.png").exists()

@@ -2,7 +2,7 @@
 
 Only reads header bytes (no pixel decode) — avoids pulling in Pillow as a
 dependency just to answer "how wide/tall is this image", which is all the
-image-pair layout heuristic in build.py needs.
+image-grid arrangement in build.py needs.
 """
 
 from __future__ import annotations

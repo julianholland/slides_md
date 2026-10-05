@@ -37,7 +37,7 @@ layout and feature, one per page.
 - Numbered citations from a BibTeX or plain-text bibliography, cited inline (`[@key]`)
   or from an image, with DOI links
 - PDFs usable anywhere a PNG/JPEG image is, rasterized automatically at build time
-- Two-image pairs auto-arranged (stacked vs. side-by-side) from real pixel aspect ratio
+- Image groups (2+) auto-arranged into rows from real pixel aspect ratio
 - Click-to-zoom image lightbox and vendored KaTeX — no network requests in the built
   output
 - Only three runtime dependencies (PyYAML, markdown-it-py, Jinja2) — no Pillow, hand-

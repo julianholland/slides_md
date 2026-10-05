@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- `images` accepts 2 or more images (was exactly 2). They're arranged into rows in
+  reading order, picking the row layout that leaves the least blank space while keeping
+  the images roughly the same size.
+- A `phase_images` entry on a `content` slide can now be an `images` group
+  (`- images: [{image: ...}, {image: ...}, ...]`) shown together on that reveal step,
+  arranged like the `images` field.
+
+### Changed
+- Two-image `images` now use the same row search, which assumes the real (wider than
+  square) media column; some pairs that used to stack now sit side by side or vice versa.
+  The `.image-pair`/`.image-pair-item` CSS classes are replaced by `.image-grid`,
+  `.image-grid-row` and `.image-grid-item`.
+
+### Fixed
+- A `phase_images` entry without an `image` field now gives a clear error instead of
+  crashing with `KeyError: 'image'`.
+
 ## [0.2.1] - 2026-10-05
 
 ### Added

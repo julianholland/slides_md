@@ -103,8 +103,8 @@ since the goal is "reference a PDF exactly like you'd reference a PNG." Detectio
 *inside* `resolve()`, right after the existing real-file check and *before* the
 basename-collision logic, so a rasterized `figure.pdf` → `figure.png` still correctly
 collides with an unrelated real `figure.png` referenced elsewhere (their resolved
-source paths differ) — every downstream step (`imagesize.get_size()` for the two-image
-pair arrangement, `copy_into()`'s final copy) then operates on the rasterized PNG with
+source paths differ) — every downstream step (`imagesize.get_size()` for the `images`
+grid arrangement, `copy_into()`'s final copy) then operates on the rasterized PNG with
 zero further changes, exactly as it would for a real PNG. Rasterization
 (`pdf_images.rasterize_pdf`, PyMuPDF — `import pymupdf`, not the library's older
 deprecated `fitz` alias) is first-page-only, fixed at 200 DPI, no per-image
@@ -131,12 +131,18 @@ image C") from `placeholders.placeholder_alt()` whenever a placeholder is used w
 and `schema.py`'s missing-alt warnings likewise skip placeholders — so dropping one in
 while drafting never produces warnings to clean up later.
 
-**Two-image `images` pair** (`content` layout only, exactly 2 entries): `ImageResolver.resolve_with_size`
+**`images` grid** (`content` layout only, 2+ entries): `ImageResolver.resolve_with_size`
 reads each image's real pixel dimensions via `deckoction/imagesize.py` — a small
 dependency-free PNG/JPEG/GIF header parser (deliberately not Pillow, to keep the project
-at 3 runtime deps). `build.py:choose_image_pair_arrangement` picks `stack` (vertical) vs
-`side` (horizontal) by comparing the combined side-by-side aspect ratio to 1 — this is a
-pure function, unit-tested directly. Each `images[]` entry reuses the same `Panel`
+at 3 runtime deps). `build.py:arrange_images` (a pure function, unit-tested directly)
+returns row sizes: it tries every order-preserving split into consecutive rows (2^(n-1)),
+treats each row as justified (shared height, full width, so a row of summed aspect S is
+1/S tall), fits the block into a `MEDIA_BOX_ASPECT` (1.4, the real `.media-col` shape)
+box, and scores `fill * (min_area / max_area) ** BALANCE_WEIGHT`. The template renders
+`.image-grid` > `.image-grid-row` > `.image-grid-item` with inline `flex: <grow> 1 0`
+(row grow ∝ 1/S, item grow ∝ its aspect), each set normalized in `_slide_context` to sum
+to 1 — flex-grow values summing below 1 only distribute that fraction of the free space,
+which left visible blank bands (found via screenshot). Each `images[]` entry reuses the same `Panel`
 dataclass as `split`'s `panels` (`image`/`label`/`alt`) rather than a separate type,
 since the shape is identical; the single boxed `image` field has its own parallel
 `image_label` for a caption. Both render via a shared `.panel-label` CSS class.
@@ -216,7 +222,10 @@ cascades to its untagged descendants for free. `build.py:_slide_context` diverts
 `phase_in.render_with_phase_tags`/`bullet_phase_classes` instead of the plain
 `render.render_body` only when `slide.phase_step is not None`; ordinary slides are
 untouched, and `render.py` itself needed no changes at all. `phase_images` (optional,
-reuses the `Panel` dataclass like `images`/`panels`) is indexed by the same step number,
+reuses the `Panel` dataclass like `images`/`panels`; stored as `list[list[Panel]]`, one
+inner list per step — 1 Panel for a plain `{image, ...}` entry, 2+ for a `content`-only
+`{images: [...]}` group entry, which `expand_slide` routes into the clone's `.images` so
+it renders through the ordinary `images` grid path) is indexed by the same step number,
 clamped to its last entry once exhausted — a 1-entry list is a valid way to keep one
 static image on screen through the whole reveal. Warnings/body-syntax-checks in
 `_slide_context` are only surfaced on a phase-in slide's first expansion clone (`step ==
@@ -337,7 +346,7 @@ frame; both are exercised by
 `tests/test_pdf_export.py` / `tests/test_thumbnail_export.py`, which `pytest.importorskip`
 Playwright and skip outright if Chromium isn't installed locally.
 
-`examples/demo/slides.md` exercises all six layouts + background alpha + image pairs +
+`examples/demo/slides.md` exercises all six layouts + background alpha + image groups +
 placeholder images + phase-in reveal (content, split, image) + citations/references + `<!-- -->` comments
 (inline and a whole commented-out slide) + blockquotes + a pipe table + KaTeX, and doubles as the
 primary integration-test fixture

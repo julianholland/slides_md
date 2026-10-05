@@ -66,11 +66,14 @@ title: Phase-In Reveal
 phase_in: true
 phase_images:
   - image: example-image-a
-  - image: example-image-b
+  - images:
+    - image: example-image-b
+    - image: example-image-c
+    - image: example-image-d
 ---
 
 - Bullets reveal one at a time, dimming as new ones appear
-- The image advances alongside, freezing on the last once exhausted
+- The image advances alongside, freezing on the last once exhausted (an entry can be an `images` group)
 
 +++
 

@@ -89,7 +89,7 @@ gone from the build.
 | `author` | title | falls back to `deck.yaml`'s `default_author` |
 | `date` | title | literal string, or `today` to fill in the build date |
 | `image` / `image_alt` / `image_label` / `image_reference` | content, image | on `content`, a boxed image with an optional caption `image_label` (mutually exclusive with `video`/`panels`/`images`/`phase_in`); on `image`, the full-bleed slide image (required unless `phase_in` is set, mutually exclusive with `background`/`phase_images`). Accepts a placeholder name or a `.pdf` file in place of a real image path. `image_reference` cites a bibliography key, numbering it in the image's top-right corner |
-| `images` | content | exactly 2 `{image, label?, alt?, reference?}`; auto-arranged stacked or side-by-side from aspect ratio (mutually exclusive with `image`/`video`/`panels`/`phase_in`) |
+| `images` | content | 2 or more `{image, label?, alt?, reference?}`; auto-arranged into rows in reading order from their aspect ratios (mutually exclusive with `image`/`video`/`panels`/`phase_in`) |
 | `video` | content | mutually exclusive with `image`/`panels`/`images`/`phase_in` |
 | `panels` | content, split | list of `{image, label, alt?, reference?}`; required for `split` |
 | `background` | all except `image` | image path (or `.pdf`); layers behind the slide content |
@@ -101,15 +101,18 @@ gone from the build.
 | `id` / `classes` | all | override the slide's `id`, or add extra CSS classes |
 | `phase_in` | content, stacked, split, image | `true` to reveal the slide step by step — bullets on `content`/`stacked`, panels on `split`, `phase_images` on `image`; see [Phase-in reveal](#phase-in-reveal). On `content`, mutually exclusive with `image`/`video`/`images`/`panels` |
 | `phase_level` | content, stacked | with `phase_in: true`: which bullet-indent level drives the reveal (`1` = top-level, default; `2` = first sub-level; ...) |
-| `phase_images` | content, image | with `phase_in: true`: list of `{image, alt?, reference?}` shown one per reveal step. On `content`, it stays on the last image once the list runs out; on `image`, it's required and each entry is one full-bleed step |
+| `phase_images` | content, image | with `phase_in: true`: list of `{image, alt?, reference?}` shown one per reveal step. On `content`, it stays on the last image once the list runs out, and an entry can instead be `{images: [{image, label?, alt?, reference?}, ...]}` (2 or more) to show a group on that step (arranged like `images`); on `image`, it's required and each entry is one full-bleed step |
 
 Any slide can carry a `background` + `background_opacity` — this is independent of the
 title slide's translucent panel, so a dimmed background works on content slides too.
 
-A `content` slide's `images` pair is auto-arranged from each image's actual pixel
-dimensions (read at build time, no dependency needed): if the two images placed side by
-side would come out wider than tall, they're stacked vertically instead so neither gets
-squeezed thin in the media column; otherwise they sit side by side.
+A `content` slide's `images` (2 or more) are arranged into rows from each image's actual
+pixel dimensions (read at build time, no dependency needed). Images keep their order,
+filling rows left to right and then top to bottom; within a row they share one height and
+span the full width. Of every possible way to break the list into rows, the build picks
+the one that leaves the least blank space in the media column while keeping the images
+roughly the same size — e.g. 3 squares sit in one row, 4 form a 2x2 grid, two wide plots
+stack, two portraits sit side by side.
 
 Every rendered `<img>` is click-to-zoom — clicking it opens a full-screen lightbox fit to
 the screen. Inside the lightbox, click the image (or scroll the mouse wheel over it) to
@@ -232,8 +235,8 @@ Any image-path field (`image`, `background`, `images[].image`, `panels[].image`,
 `phase_images[].image`) accepts a `.pdf` file too — no different syntax, just point at
 a PDF the way you'd point at a PNG. Its first page is rasterized to a PNG at build time
 (200 DPI, not configurable) and flows through the rest of the pipeline exactly like any
-other image — same styling, same click-to-zoom, same two-image aspect-ratio
-arrangement, same citation reference badges. This needs the `pdf-images` extra:
+other image — same styling, same click-to-zoom, same aspect-ratio-based
+`images` arrangement, same citation reference badges. This needs the `pdf-images` extra:
 
 ```bash
 uv sync --extra pdf-images

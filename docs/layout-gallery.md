@@ -35,8 +35,8 @@ background_opacity: 0.5
 
 ## Content
 
-`title`/`kicker` + bullets on the left, media on the right — a single boxed `image`, or a
-two-image `images` pair auto-arranged from real pixel aspect ratio.
+`title`/`kicker` + bullets on the left, media on the right — a single boxed `image`, or an
+`images` group (2+) auto-arranged into rows from real pixel aspect ratio.
 
 ```markdown
 ---

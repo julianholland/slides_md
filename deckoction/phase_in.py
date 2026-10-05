@@ -183,13 +183,19 @@ def expand_slide(slide: SlideConfig) -> list[SlideConfig]:
         # Only content/image use phase_images (schema forbids them elsewhere, and
         # forbids `image` alongside them), so other clones keep their fields as-is.
         if slide.phase_images:
-            image_entry = slide.phase_images[min(step, len(slide.phase_images) - 1)]
-            changes = dict(
-                image=image_entry.image,
-                image_alt=image_entry.alt,
-                image_label=image_entry.label,
-                image_reference=image_entry.reference,
-            )
+            entry = slide.phase_images[min(step, len(slide.phase_images) - 1)]
+            if len(entry) == 1:
+                changes = dict(
+                    image=entry[0].image,
+                    image_alt=entry[0].alt,
+                    image_label=entry[0].label,
+                    image_reference=entry[0].reference,
+                    images=[],
+                )
+            else:
+                # An `images` group: rendered through the same path as the `images`
+                # field (rows chosen by build.arrange_images).
+                changes = dict(image=None, image_alt="", image_label=None, image_reference="", images=entry)
         clones.append(
             replace(
                 slide,
