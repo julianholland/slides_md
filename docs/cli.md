@@ -20,10 +20,10 @@ python -m deckoction build <input.md> -o <output_dir>
   [--thumbnail PATH]          # also export a PNG screenshot of the title slide to PATH
 ```
 
-The same command is also available as the `slide-maker` console script:
+The same command is also available as the `deckoction` console script:
 
 ```bash
-slide-maker build slides.md -o build/mydeck
+deckoction build slides.md -o build/mydeck
 ```
 
 Only images actually referenced by a slide are copied into `<output>/slide_images/`.

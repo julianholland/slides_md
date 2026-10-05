@@ -9,8 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - **Breaking:** the import package is renamed from `slide_maker` to `deckoction`, matching
-  the PyPI name. Update `import slide_maker` / `python -m slide_maker` to `deckoction`. The
-  `slide-maker` and `slides_md` commands are unchanged.
+  the PyPI name. Update `import slide_maker` / `python -m slide_maker` to `deckoction`.
+- **Breaking:** the `slide-maker` command is renamed to `deckoction` (e.g.
+  `deckoction build slides.md -o build/deck`). The `slides_md` shortcut is unchanged.
 
 ## [0.1.1] - 2026-10-05
 

@@ -220,5 +220,5 @@ title: build flags
 ...
 
 ```bash
-slide-maker build slides.md -o build/deck --pdf deck.pdf --thumbnail deck.png --strict --force
+deckoction build slides.md -o build/deck --pdf deck.pdf --thumbnail deck.png --strict --force
 ```

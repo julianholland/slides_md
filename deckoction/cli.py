@@ -12,7 +12,7 @@ from .thumbnail import export_thumbnail
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(prog="slide-maker")
+    parser = argparse.ArgumentParser(prog="deckoction")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     build_parser = subparsers.add_parser("build", help="Build an HTML slide deck from a Markdown file")

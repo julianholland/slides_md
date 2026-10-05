@@ -25,7 +25,7 @@ dependencies = [
 ]
 
 [project.scripts]
-slide-maker = "deckoction.cli:main"
+deckoction = "deckoction.cli:main"
 slides_md = "deckoction.cli:serve_main"
 
 [project.optional-dependencies]
