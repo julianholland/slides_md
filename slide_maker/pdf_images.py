@@ -2,7 +2,7 @@
 path is already accepted (`ImageResolver.resolve` routes any `.pdf` source through
 `rasterize_pdf` before its normal basename/collision handling — see build.py).
 
-Uses PyMuPDF (`fitz`), a dev/runtime-optional extra (`pip install -e ".[pdf-images]"`)
+Uses PyMuPDF (`fitz`), a dev/runtime-optional extra (`uv sync --extra pdf-images`)
 kept out of the 3 core runtime dependencies the same way `pdf`'s Playwright is.
 """
 
@@ -18,7 +18,8 @@ def rasterize_pdf(pdf_path: Path, out_dir: Path, *, dpi: int = 200, slide_index:
         import pymupdf  # PyMuPDF -- `import fitz` is the same library under its old, deprecated name
     except ImportError as exc:
         raise SlideMakerError(
-            "using a PDF as an image requires the 'pdf-images' extra: pip install -e '.[pdf-images]'",
+            "using a PDF as an image requires the 'pdf-images' extra: "
+            "uv tool install 'slides-md[pdf-images]' (or `uv sync --extra pdf-images` in a checkout)",
             slide_index=slide_index,
         ) from exc
 

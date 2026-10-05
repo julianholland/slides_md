@@ -13,22 +13,30 @@ dependency in the generated output).
 ## Commands
 
 ```bash
-pip install -e ".[dev]"                                    # install + dev deps (pytest, ruff)
-pytest                                                      # run all tests
-pytest tests/test_build_end_to_end.py::test_build_demo_deck # run a single test
-ruff check .                                                # lint
-python -m slide_maker build examples/demo/slides.md -o build/demo --serve   # build + preview at :8000
-slides_md examples/demo/slides.md [--force]                               # shortcut: build to examples/demo/build/ + serve at :8000
+uv sync                                                            # install + dev group (pytest, ruff, pypdf)
+uv run pytest                                                      # run all tests
+uv run pytest tests/test_build_end_to_end.py::test_build_demo_deck # run a single test
+uv run ruff check .                                                # lint
+uv run python -m slide_maker build examples/demo/slides.md -o build/demo --serve   # build + preview at :8000
+uv run slides_md examples/demo/slides.md [--force]                 # shortcut: build to examples/demo/build/ + serve at :8000
 
-pip install -e ".[pdf]" && playwright install chromium      # needed for --pdf / --thumbnail
-python -m slide_maker build examples/demo/slides.md -o build/demo --pdf demo.pdf --thumbnail demo.png
+uv sync --extra pdf && uv run playwright install chromium          # needed for --pdf / --thumbnail
+uv run python -m slide_maker build examples/demo/slides.md -o build/demo --pdf demo.pdf --thumbnail demo.png
 ```
 
 Ruff is configured in `pyproject.toml`'s `[tool.ruff]` — a deliberately modest baseline
 (pyflakes `F` + import ordering `I` + a few pycodestyle error groups, not style/annotation
 opinions) since the project had no prior lint history. No formatter is configured.
 `.github/workflows/ci.yml` runs `pytest` (matrixed across Python 3.10-3.12), `ruff check`,
-and a docs build (`sphinx-build -W`, warnings promoted to errors) on every push/PR.
+a docs build (`sphinx-build -W`, warnings promoted to errors), and a `uv build` +
+`twine check` packaging job on every push/PR.
+
+Packaging is uv-managed: `uv.lock` is committed (CI runs `uv sync --locked`), dev tools are
+a PEP 735 `[dependency-groups] dev` (not an extra), and the build backend is hatchling +
+`hatch-vcs` — the version comes from git tags (`vMAJOR.MINOR.PATCH`), there is no version
+number in `pyproject.toml`. Published to PyPI as `slides-md` (import name stays
+`slide_maker`) via the `/publish` command (`.claude/commands/publish.md`); release notes go
+under `## [Unreleased]` in `CHANGELOG.md`.
 
 ## Architecture
 
@@ -103,8 +111,8 @@ deprecated `fitz` alias) is first-page-only, fixed at 200 DPI, no per-image
 configuration; `ImageResolver` caches by source PDF path (a PDF referenced on several
 slides is rasterized once) into a lazily-created `tempfile.TemporaryDirectory` (never
 allocated for a deck with no PDF images), cleaned up via `ImageResolver.close()` in a
-`finally` in `build()`. PyMuPDF is a separate optional extra (`pip install -e
-".[pdf-images]"`) from the `pdf` extra's Playwright — deliberately not reusing
+`finally` in `build()`. PyMuPDF is a separate optional extra (`uv sync --extra
+pdf-images`) from the `pdf` extra's Playwright — deliberately not reusing
 Playwright/Chromium (screenshotting its built-in PDF viewer) to avoid tying a simple
 raster conversion to a ~300MB browser download for a single-page-image use case.
 
@@ -305,7 +313,7 @@ headless Chromium through Playwright (`sync_playwright`) to load `index.html`, t
 the server down in a `finally`. Both are optional CLI flags on `build`, run in that
 order — `--pdf` then `--thumbnail` — after the build and before `--serve`
 (`slide_maker/cli.py`); both raise `SlideMakerError` with an install hint
-(`pip install -e ".[pdf]"` + `playwright install chromium`) if Playwright isn't
+(`uv sync --extra pdf` / `uv tool install 'slides-md[pdf]'` + `playwright install chromium`) if Playwright isn't
 installed, since the `pdf` extra is optional and not a runtime dependency.
 `export_pdf` additionally emulates print media and injects `_FIT_JS`, which shrinks the
 rem-based font sizes of a fixed selector list of elements (not CSS `transform: scale()`)

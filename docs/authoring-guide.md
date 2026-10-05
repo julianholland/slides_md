@@ -224,7 +224,7 @@ other image — same styling, same click-to-zoom, same two-image aspect-ratio
 arrangement, same citation reference badges. This needs the `pdf-images` extra:
 
 ```bash
-pip install -e ".[pdf-images]"
+uv sync --extra pdf-images
 ```
 
 A PDF referenced on multiple slides is only rasterized once. Only the first page is

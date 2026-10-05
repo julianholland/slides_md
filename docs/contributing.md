@@ -1,10 +1,10 @@
 # Contributing
 
 ```bash
-pip install -e ".[dev]"
-pytest
-pytest tests/test_build_end_to_end.py::test_build_demo_deck   # run a single test
-ruff check .
+uv sync                                                      # installs the dev group by default
+uv run pytest
+uv run pytest tests/test_build_end_to_end.py::test_build_demo_deck   # run a single test
+uv run ruff check .
 ```
 
 Ruff is configured in `pyproject.toml`'s `[tool.ruff]` (pyflakes + import ordering — a

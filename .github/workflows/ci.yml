@@ -15,68 +15,87 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - name: Set up uv with Python ${{ matrix.python-version }}
+        uses: astral-sh/setup-uv@v6
         with:
           python-version: ${{ matrix.python-version }}
-          cache: pip
+          enable-cache: true
 
       - name: Install package + dev dependencies
-        run: pip install -e ".[dev]"
+        run: uv sync --locked
 
       - name: Run tests
-        run: pytest
+        run: uv run pytest
 
   lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.11"
-          cache: pip
+          enable-cache: true
 
       - name: Install package + dev dependencies
-        run: pip install -e ".[dev]"
+        run: uv sync --locked
 
       - name: Run ruff
-        run: ruff check .
+        run: uv run ruff check .
 
   docs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.11"
-          cache: pip
+          enable-cache: true
 
       - name: Install package + docs dependencies
-        run: pip install -e ".[docs]"
+        run: uv sync --locked --extra docs
 
       - name: Build docs (warnings are errors)
-        run: sphinx-build -b html docs docs/_build/html -W --keep-going
+        run: uv run sphinx-build -b html docs docs/_build/html -W --keep-going
 
   pdf:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.11"
-          cache: pip
+          enable-cache: true
 
       - name: Install package + dev + pdf dependencies
-        run: pip install -e ".[dev,pdf]"
+        run: uv sync --locked --extra pdf
 
       - name: Install Chromium
-        run: playwright install --with-deps chromium
+        run: uv run playwright install --with-deps chromium
 
       - name: Run PDF export tests
-        run: pytest tests/test_pdf_export.py
+        run: uv run pytest tests/test_pdf_export.py
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # hatch-vcs derives the version from git tags
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.11"
+          enable-cache: true
+
+      - name: Build sdist + wheel
+        run: uv build
+
+      - name: Check distribution metadata
+        run: uvx twine check dist/*

@@ -56,7 +56,8 @@ def export_pdf(output_dir: Path, pdf_path: Path) -> None:
     except ImportError as exc:
         raise SlideMakerError(
             "PDF export requires the 'pdf' extra: "
-            "pip install -e '.[pdf]' && playwright install chromium"
+            "uv tool install 'slides-md[pdf]' (or `uv sync --extra pdf` in a checkout), "
+            "then `playwright install chromium`"
         ) from exc
 
     handler = partial(SimpleHTTPRequestHandler, directory=str(output_dir))

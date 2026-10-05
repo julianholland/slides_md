@@ -1,8 +1,8 @@
 # Quickstart
 
 ```bash
-pip install -e .
-slides_md examples/demo/slides.md            # add --force to rebuild over a previous build
+uv sync
+uv run slides_md examples/demo/slides.md            # add --force to rebuild over a previous build
 ```
 
 This builds `examples/demo/build/index.html` (plus `assets/`, `vendor/katex/`, and

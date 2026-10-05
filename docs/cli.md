@@ -34,7 +34,7 @@ successful build, and blocks until you stop it (`Ctrl+C`).
 
 `--pdf` renders one PDF page per slide via headless Chromium, using the built HTML
 output as the source (so it runs after the build, before `--serve`). It requires the
-`pdf` extra: `pip install -e ".[pdf]"` followed by a one-time `playwright install
+`pdf` extra: `uv sync --extra pdf` followed by a one-time `uv run playwright install
 chromium` to download the browser binary.
 
 `--thumbnail` screenshots the deck's initial view (slide 1 — the deck always opens

@@ -2,19 +2,25 @@
 
 ## Installing slide_maker
 
-There's no PyPI package yet, so install from source:
+Install the published package from PyPI (as a standalone CLI tool, via
+[uv](https://docs.astral.sh/uv/)):
+
+```bash
+uv tool install slides-md                 # or: uv tool install 'slides-md[pdf]' for --pdf
+```
+
+or work from a source checkout:
 
 ```bash
 git clone https://github.com/julianholland/slides_md.git
-cd slide_maker
-pip install -e .
+cd slides_md
+uv sync
 ```
 
-(The GitHub repository is named `slides_md`; the local directory and Python package are
-named `slide_maker`/`slide-maker` — clone into whatever directory name you like, just
-`cd` into it before running `pip install`.)
+(The PyPI distribution is named `slides-md`; the importable Python package is
+`slide_maker`. In a checkout, prefix commands with `uv run`, e.g. `uv run slides_md ...`.)
 
-This installs the `slide-maker` console script and enables `python -m slide_maker`.
+This installs the `slide-maker` and `slides_md` console scripts and enables `python -m slide_maker`.
 Requires Python 3.10 or later.
 
 ### Runtime dependencies
@@ -31,16 +37,16 @@ hand-parsing PNG/JPEG/GIF headers instead).
 ### Running the test suite
 
 ```bash
-pip install -e ".[dev]"
-pytest
+uv sync
+uv run pytest
 ```
 
 ## Building these docs locally
 
 ```bash
-pip install -e ".[docs]"
+uv sync --extra docs
 cd docs
-make html
+uv run make html
 ```
 
 ## PDF export
@@ -49,8 +55,8 @@ make html
 extra plus a one-time browser download:
 
 ```bash
-pip install -e ".[pdf]"
-playwright install chromium
+uv sync --extra pdf
+uv run playwright install chromium
 ```
 
 Then open `docs/_build/html/index.html` in a browser. This step also regenerates the

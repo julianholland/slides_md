@@ -2,8 +2,8 @@
 """One-off generator for the downloadable feature cheatsheet PDF.
 
 Dev-only tool (not part of the installed package, not a runtime dependency — requires
-the `pdf` extra, same as `slide_maker.pdf.export_pdf`: `pip install -e ".[pdf]"` plus a
-one-time `playwright install chromium`). Builds `examples/cheatsheet/slides.md` into a
+the `pdf` extra, same as `slide_maker.pdf.export_pdf`: `uv sync --extra pdf` plus a
+one-time `uv run playwright install chromium`). Builds `examples/cheatsheet/slides.md` into a
 throwaway directory and exports it to `docs/_static/cheatsheet.pdf`, one page per slide.
 Run this again and re-commit the output whenever the cheatsheet deck changes:
 

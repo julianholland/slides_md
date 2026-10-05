@@ -13,8 +13,8 @@ vendored KaTeX for math, with no build step or CDN dependency in the output.
 ## Quickstart
 
 ```bash
-pip install -e .
-slides_md examples/demo/slides.md            # add --force to rebuild over a previous build
+uv sync
+uv run slides_md examples/demo/slides.md            # add --force to rebuild over a previous build
 ```
 
 This builds `examples/demo/build/index.html` (plus `assets/`, `vendor/katex/`, and
@@ -234,7 +234,7 @@ other image — same styling, same click-to-zoom, same two-image aspect-ratio
 arrangement, same citation reference badges. This needs the `pdf-images` extra:
 
 ```bash
-pip install -e ".[pdf-images]"
+uv sync --extra pdf-images
 ```
 
 A PDF referenced on multiple slides is only rasterized once. Only the first page is
@@ -315,18 +315,18 @@ python -m slide_maker build <input.md> -o <output_dir>
 Only images actually referenced by a slide are copied into `<output>/slide_images/`.
 A missing referenced image is always a build error, `--strict` or not. A `.pdf` file
 can be used anywhere a PNG/JPEG can — its first page is rasterized (200 DPI) and
-treated identically from there on — with the `pdf-images` extra (`pip install -e
-".[pdf-images]"`).
+treated identically from there on — with the `pdf-images` extra (`uv sync --extra
+pdf-images`).
 
-`--pdf` and `--thumbnail` both require the `pdf` extra (`pip install -e ".[pdf]"`) plus
-a one-time `playwright install chromium` to download the browser.
+`--pdf` and `--thumbnail` both require the `pdf` extra (`uv sync --extra pdf`) plus
+a one-time `uv run playwright install chromium` to download the browser.
 
 ## Development
 
 ```bash
-pip install -e ".[dev]"
-pytest
-ruff check .
+uv sync
+uv run pytest
+uv run ruff check .
 ```
 
 CI (`.github/workflows/ci.yml`) runs tests (Python 3.10-3.12), `ruff check`, and a docs

@@ -1,7 +1,22 @@
+[build-system]
+requires = ["hatchling>=1.26", "hatch-vcs>=0.4"]
+build-backend = "hatchling.build"
+
 [project]
-name = "slide-maker"
-version = "0.1.0"
+name = "slides-md"
+dynamic = ["version"]
 description = "Markdown + YAML frontmatter to static HTML slide deck generator"
+readme = "README.md"
+authors = [
+    {name = "Julian Holland", email = "holland@fhi.mpg.de"}
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Multimedia :: Graphics :: Presentation",
+]
 requires-python = ">=3.10"
 dependencies = [
     "pyyaml>=6.0",
@@ -14,20 +29,43 @@ slide-maker = "slide_maker.cli:main"
 slides_md = "slide_maker.cli:serve_main"
 
 [project.optional-dependencies]
-dev = ["pytest>=7.0", "ruff>=0.6", "pypdf>=4.0"]
+# Extras (not dependency groups) so end users can `uv tool install 'slides-md[pdf]'`
+# and Read the Docs can install `docs`.
 docs = ["sphinx>=6.0", "sphinx-rtd-theme>=1.2", "myst-parser>=0.18"]
 pdf = ["playwright>=1.40"]
 pdf-images = ["PyMuPDF>=1.23"]
 
-[build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
+# Development-only dependencies (PEP 735). `uv sync` installs the `dev`
+# group by default; never part of the published package.
+[dependency-groups]
+dev = ["pytest>=7.0", "ruff>=0.6", "pypdf>=4.0"]
 
-[tool.setuptools.packages.find]
-include = ["slide_maker*"]
+[project.urls]
+Homepage = "https://github.com/julianholland/slides_md"
+Repository = "https://github.com/julianholland/slides_md"
+Documentation = "https://slides-md.readthedocs.io"
 
-[tool.setuptools.package-data]
-slide_maker = ["templates/*.jinja", "assets/**/*", "vendor/**/*", "placeholder_images/*.png"]
+# Version from git tags (vMAJOR.MINOR.PATCH).
+[tool.hatch.version]
+source = "vcs"
+raw-options = { version_scheme = "post-release", local_scheme = "no-local-version" }
+
+# Non-Python package files (templates, assets, vendored KaTeX, placeholder PNGs) are
+# included because they live inside the package directory.
+[tool.hatch.build.targets.wheel]
+packages = ["slide_maker"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "slide_maker",
+    "tests",
+    "docs",
+    "examples",
+    "README.md",
+    "CHANGELOG.md",
+    "pyproject.toml",
+]
+exclude = ["**/__pycache__", "docs/_build", "docs/_static/demo", "examples/**/build"]
 
 [tool.ruff]
 line-length = 100
