@@ -1,6 +1,6 @@
 ---
 description: Check CI, bump version tag, build, and publish to PyPI
-allowed-tools: Bash(gh run list:*), Bash(gh run view:*), Bash(git status:*), Bash(git add:*), Bash(git commit:*), Bash(git tag:*), Bash(git describe:*), Bash(git log:*), Bash(git diff:*), Bash(git rev-list:*), Bash(git push:*), Bash(uv build:*), Bash(uv lock:*), Bash(uv run ruff:*), Bash(uv run pytest:*), Bash(uv version:*), Bash(uvx twine check:*), Bash(uv publish:*), Bash(UV_PUBLISH_TOKEN=*), Bash(curl -s https://pypi.org/pypi/slides-md/json:*), Bash(rm -rf dist:*), Bash(date:*)
+allowed-tools: Bash(gh run list:*), Bash(gh run view:*), Bash(git status:*), Bash(git add:*), Bash(git commit:*), Bash(git tag:*), Bash(git describe:*), Bash(git log:*), Bash(git diff:*), Bash(git rev-list:*), Bash(git push:*), Bash(uv build:*), Bash(uv lock:*), Bash(uv run ruff:*), Bash(uv run pytest:*), Bash(uv version:*), Bash(uvx twine check:*), Bash(uv publish:*), Bash(fish -c 'set -lx UV_PUBLISH_TOKEN $UV_PUBLISH_TOKEN; uv publish:*), Bash(fish -c 'set -q UV_PUBLISH_TOKEN:*), Bash(curl -s https://pypi.org/pypi/deckoction-md/json:*), Bash(rm -rf dist:*), Bash(date:*)
 ---
 
 ## Context
@@ -12,7 +12,7 @@ allowed-tools: Bash(gh run list:*), Bash(gh run view:*), Bash(git status:*), Bas
 
 ## Your task
 
-You are publishing a new release of slides_md to PyPI (distribution name `slides-md`; the
+You are publishing a new release of slides_md to PyPI (distribution name `deckoction-md`; the
 import package is `slide_maker`). Follow these steps in order, stopping and reporting
 clearly if any step fails.
 
@@ -129,34 +129,34 @@ uv build
 uvx twine check dist/*
 ```
 
-Verify the built file names (`dist/slides_md-<version>.tar.gz` and `dist/slides_md-<version>-py3-none-any.whl` — note the underscore, PyPI normalizes it — also shown in the `uv build` output) carry exactly `<new_tag>` without the `v` and without any `.postN` or `.devN` suffix. If there is a suffix, **stop**: there are extra commits since the tag — go back to Step 2.
+Verify the built file names (`dist/deckoction_md-<version>.tar.gz` and `dist/deckoction_md-<version>-py3-none-any.whl` — note the underscore, PyPI normalizes it — also shown in the `uv build` output) carry exactly `<new_tag>` without the `v` and without any `.postN` or `.devN` suffix. If there is a suffix, **stop**: there are extra commits since the tag — go back to Step 2.
 
 If `twine check` reports any errors, stop and report them. Do not upload a broken package.
 
 ### Step 6 — Upload to PyPI
 
-`uv publish` uploads everything in `dist/`. It reads the PyPI API token from `UV_PUBLISH_TOKEN` and, unlike twine, does **not** read `~/.pypirc`. Claude's shell doesn't load the user's interactive profile, so the variable is often unset there even when the user has it. The token is also kept in `~/.pypirc` (`[pypi]`, `username = __token__`, `password = pypi-...`). Use `UV_PUBLISH_TOKEN` when set; otherwise pass the `~/.pypirc` token to this one command only:
+`uv publish` uploads everything in `dist/`. It reads the PyPI API token from `UV_PUBLISH_TOKEN` and, unlike twine, does **not** read `~/.pypirc`. The user's token lives in their **fish** config (`~/.config/fish/config.fish`), which Claude's bash shell doesn't load — and bash's environment may hold a *different, stale* `UV_PUBLISH_TOKEN` that PyPI rejects with a 403. So run the upload through fish, re-exporting the variable for this one command (works whether config.fish uses `set -g` or `set -gx`):
 
 ```bash
-UV_PUBLISH_TOKEN="${UV_PUBLISH_TOKEN:-$(sed -n '/^\[pypi\]/,/^\[/s/^password[[:space:]]*=[[:space:]]*//p' ~/.pypirc)}" uv publish --no-progress
+fish -c 'set -lx UV_PUBLISH_TOKEN $UV_PUBLISH_TOKEN; uv publish --no-progress'
 ```
 
-Never print, echo, log or otherwise display the token, and never write it to a file or into the chat. If neither source has a token (an authentication error such as "Missing credentials"), don't ask the user to paste it into the chat. Tell them to run it themselves:
+Never print, echo, log or otherwise display the token — not even partially, and not via `set -S`, `env`, `grep config.fish` or similar inspection commands (to check presence only, use `fish -c 'set -q UV_PUBLISH_TOKEN; and echo set'`) — and never write it to a file or into the chat. If there is no token (an authentication error such as "Missing credentials"), don't ask the user to paste it into the chat. Tell them to run it themselves:
 - `! UV_PUBLISH_TOKEN=pypi-<token> uv publish`, **or**
-- add the token to `~/.pypirc` (as above) or export `UV_PUBLISH_TOKEN` in their shell profile, then run `/publish` again.
+- add `set -gx UV_PUBLISH_TOKEN pypi-...` to their fish config, then run `/publish` again.
 
-A project-scoped token from another project (e.g. ALomancy's) cannot upload `slides-md`; for the first release the token must be account-wide (PyPI only allows project-scoped tokens once the project exists). If PyPI returns a 403 for that reason, tell the user.
+A project-scoped token from another project (e.g. ALomancy's) cannot upload `deckoction-md`; for the first release the token must be account-wide (PyPI only allows project-scoped tokens once the project exists). If PyPI returns a 403 for that reason, tell the user.
 
 If PyPI rejects the upload because the version already exists, the release was already published; go to Step 7.
 
 After uploading, confirm the release is live:
 
 ```bash
-curl -s https://pypi.org/pypi/slides-md/json | python3 -c "import sys,json; print(json.load(sys.stdin)['info']['version'])"
+curl -s https://pypi.org/pypi/deckoction-md/json | python3 -c "import sys,json; print(json.load(sys.stdin)['info']['version'])"
 ```
 
 (The PyPI JSON API can lag a minute or two behind the upload.)
 
 ### Step 7 — Confirm
 
-Report the published version, the PyPI URL (`https://pypi.org/project/slides-md/<version>/`), and the git tag that was pushed.
+Report the published version, the PyPI URL (`https://pypi.org/project/deckoction-md/<version>/`), and the git tag that was pushed.

@@ -6,7 +6,7 @@ Install the published package from PyPI (as a standalone CLI tool, via
 [uv](https://docs.astral.sh/uv/)):
 
 ```bash
-uv tool install slides-md                 # or: uv tool install 'slides-md[pdf]' for --pdf
+uv tool install deckoction-md                 # or: uv tool install 'deckoction-md[pdf]' for --pdf
 ```
 
 or work from a source checkout:
@@ -17,7 +17,7 @@ cd slides_md
 uv sync
 ```
 
-(The PyPI distribution is named `slides-md`; the importable Python package is
+(The PyPI distribution is named `deckoction-md`; the importable Python package is
 `slide_maker`. In a checkout, prefix commands with `uv run`, e.g. `uv run slides_md ...`.)
 
 This installs the `slide-maker` and `slides_md` console scripts and enables `python -m slide_maker`.

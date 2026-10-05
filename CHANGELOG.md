@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.0] - 2026-10-05
 
-First release on PyPI as `slides-md`.
+First release on PyPI as `Deckoction-md`.
 
 ### Added
 - **Markdown → static HTML slide decks**: one `slides.md` file, slides separated by `+++`,
@@ -31,5 +31,5 @@ First release on PyPI as `slides-md`.
 ### Changed
 - Packaging moved to uv + hatchling: `uv.lock` committed, dev tools in a PEP 735 `dev`
   dependency group, version taken from git tags (`hatch-vcs`). Distribution renamed from
-  `slide-maker` to `slides-md`; the import package (`slide_maker`) and the `slide-maker` /
+  `slide-maker` to `Deckoction-md`; the import package (`slide_maker`) and the `slide-maker` /
   `slides_md` commands are unchanged.

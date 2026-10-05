@@ -13,7 +13,7 @@ vendored KaTeX for math, with no build step or CDN dependency in the output.
 ## Quickstart
 
 ```bash
-uv tool install slides-md                  # or 'slides-md[pdf]' for --pdf/--thumbnail
+uv tool install deckoction-md                  # or 'deckoction-md[pdf]' for --pdf/--thumbnail
 slides_md slides.md                        # build next to slides.md and serve at :8000
 ```
 

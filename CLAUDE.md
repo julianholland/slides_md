@@ -34,7 +34,7 @@ a docs build (`sphinx-build -W`, warnings promoted to errors), and a `uv build` 
 Packaging is uv-managed: `uv.lock` is committed (CI runs `uv sync --locked`), dev tools are
 a PEP 735 `[dependency-groups] dev` (not an extra), and the build backend is hatchling +
 `hatch-vcs` — the version comes from git tags (`vMAJOR.MINOR.PATCH`), there is no version
-number in `pyproject.toml`. Published to PyPI as `slides-md` (import name stays
+number in `pyproject.toml`. Published to PyPI as `deckoction-md` (import name stays
 `slide_maker`) via the `/publish` command (`.claude/commands/publish.md`); release notes go
 under `## [Unreleased]` in `CHANGELOG.md`.
 
@@ -313,7 +313,7 @@ headless Chromium through Playwright (`sync_playwright`) to load `index.html`, t
 the server down in a `finally`. Both are optional CLI flags on `build`, run in that
 order — `--pdf` then `--thumbnail` — after the build and before `--serve`
 (`slide_maker/cli.py`); both raise `SlideMakerError` with an install hint
-(`uv sync --extra pdf` / `uv tool install 'slides-md[pdf]'` + `playwright install chromium`) if Playwright isn't
+(`uv sync --extra pdf` / `uv tool install 'deckoction-md[pdf]'` + `playwright install chromium`) if Playwright isn't
 installed, since the `pdf` extra is optional and not a runtime dependency.
 `export_pdf` additionally emulates print media and injects `_FIT_JS`, which shrinks the
 rem-based font sizes of a fixed selector list of elements (not CSS `transform: scale()`)

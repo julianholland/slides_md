@@ -19,7 +19,7 @@ def rasterize_pdf(pdf_path: Path, out_dir: Path, *, dpi: int = 200, slide_index:
     except ImportError as exc:
         raise SlideMakerError(
             "using a PDF as an image requires the 'pdf-images' extra: "
-            "uv tool install 'slides-md[pdf-images]' (or `uv sync --extra pdf-images` in a checkout)",
+            "uv tool install 'deckoction-md[pdf-images]' (or `uv sync --extra pdf-images` in a checkout)",
             slide_index=slide_index,
         ) from exc
 

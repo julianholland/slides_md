@@ -3,7 +3,7 @@ requires = ["hatchling>=1.26", "hatch-vcs>=0.4"]
 build-backend = "hatchling.build"
 
 [project]
-name = "slides-md"
+name = "Deckoction-md"
 dynamic = ["version"]
 description = "Markdown + YAML frontmatter to static HTML slide deck generator"
 readme = "README.md"
@@ -29,7 +29,7 @@ slide-maker = "slide_maker.cli:main"
 slides_md = "slide_maker.cli:serve_main"
 
 [project.optional-dependencies]
-# Extras (not dependency groups) so end users can `uv tool install 'slides-md[pdf]'`
+# Extras (not dependency groups) so end users can `uv tool install 'deckoction-md[pdf]'`
 # and Read the Docs can install `docs`.
 docs = ["sphinx>=6.0", "sphinx-rtd-theme>=1.2", "myst-parser>=0.18"]
 pdf = ["playwright>=1.40"]
