@@ -28,7 +28,7 @@ citations, and KaTeX in one deck, and doubles as the primary integration-test fi
 
 ## How it fits together
 
-The build pipeline (`slide_maker/build.py:build`): read `slides.md` (+ optional
+The build pipeline (`deckoction/build.py:build`): read `slides.md` (+ optional
 `deck.yaml`) → split on `+++` (`parser.py`) → validate per-slide YAML frontmatter
 (`schema.py`) → render Markdown body + LaTeX (`render.py`) → render each slide via its
 layout's Jinja template (`layouts.py` maps layout name → template) → assemble
@@ -54,9 +54,9 @@ and applies equally to the theme watermark image (guarded by
 
 ### Themes
 
-`slide_maker/themes.py` holds a small registry (`THEME_PRESETS`) of named
+`deckoction/themes.py` holds a small registry (`THEME_PRESETS`) of named
 `ThemeDefinition`s (colors, a body font, and an optional watermark image), resolved by
 `schema.build_deck_config` from `deck.yaml`'s `theme:` field — either a preset name
 (`theme: alomancy`) or the original free-form dict of CSS overrides. See
-{doc}`authoring-guide` for the user-facing docs, and `slide_maker/themes.py` itself for
+{doc}`authoring-guide` for the user-facing docs, and `deckoction/themes.py` itself for
 adding a new preset (register a `ThemeDefinition`; no other file needs to change).

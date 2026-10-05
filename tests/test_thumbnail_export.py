@@ -2,9 +2,9 @@ from pathlib import Path
 
 import pytest
 
-from slide_maker import imagesize
-from slide_maker.build import build
-from slide_maker.thumbnail import export_thumbnail
+from deckoction import imagesize
+from deckoction.build import build
+from deckoction.thumbnail import export_thumbnail
 
 DEMO_DIR = Path(__file__).resolve().parents[1] / "examples" / "demo"
 

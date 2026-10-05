@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from slide_maker.parser import SlideMakerError, parse_slides_file, strip_comments
+from deckoction.parser import SlideMakerError, parse_slides_file, strip_comments
 
 
 def write(tmp_path: Path, text: str) -> Path:

@@ -1,7 +1,7 @@
 CLI
 ===
 
-.. automodule:: slide_maker.cli
+.. automodule:: deckoction.cli
    :members:
    :undoc-members:
    :show-inheritance:

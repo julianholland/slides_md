@@ -1,7 +1,7 @@
 import shutil
 from pathlib import Path
 
-from slide_maker import cli
+from deckoction import cli
 
 DEMO_DIR = Path(__file__).resolve().parent.parent / "examples" / "demo"
 

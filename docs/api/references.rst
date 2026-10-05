@@ -1,7 +1,7 @@
 References
 ==========
 
-.. automodule:: slide_maker.references
+.. automodule:: deckoction.references
    :members:
    :undoc-members:
    :show-inheritance:

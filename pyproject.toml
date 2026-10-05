@@ -25,8 +25,8 @@ dependencies = [
 ]
 
 [project.scripts]
-slide-maker = "slide_maker.cli:main"
-slides_md = "slide_maker.cli:serve_main"
+slide-maker = "deckoction.cli:main"
+slides_md = "deckoction.cli:serve_main"
 
 [project.optional-dependencies]
 # Extras (not dependency groups) so end users can `uv tool install 'deckoction-md[pdf]'`
@@ -53,11 +53,11 @@ raw-options = { version_scheme = "post-release", local_scheme = "no-local-versio
 # Non-Python package files (templates, assets, vendored KaTeX, placeholder PNGs) are
 # included because they live inside the package directory.
 [tool.hatch.build.targets.wheel]
-packages = ["slide_maker"]
+packages = ["deckoction"]
 
 [tool.hatch.build.targets.sdist]
 include = [
-    "slide_maker",
+    "deckoction",
     "tests",
     "docs",
     "examples",

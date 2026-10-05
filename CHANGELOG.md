@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+- **Breaking:** the import package is renamed from `slide_maker` to `deckoction`, matching
+  the PyPI name. Update `import slide_maker` / `python -m slide_maker` to `deckoction`. The
+  `slide-maker` and `slides_md` commands are unchanged.
+
 ## [0.1.1] - 2026-10-05
 
 First release on PyPI as `Deckoction-md`. (The `v0.1.0` tag predates the rename from

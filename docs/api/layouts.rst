@@ -1,7 +1,7 @@
 Layouts
 =======
 
-.. automodule:: slide_maker.layouts
+.. automodule:: deckoction.layouts
    :members:
    :undoc-members:
    :show-inheritance:

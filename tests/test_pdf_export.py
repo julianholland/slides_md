@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from slide_maker.build import build
-from slide_maker.pdf import _FIT_JS, export_pdf
+from deckoction.build import build
+from deckoction.pdf import _FIT_JS, export_pdf
 
 DEMO_DIR = Path(__file__).resolve().parents[1] / "examples" / "demo"
 

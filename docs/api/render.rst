@@ -1,7 +1,7 @@
 Render
 ======
 
-.. automodule:: slide_maker.render
+.. automodule:: deckoction.render
    :members:
    :undoc-members:
    :show-inheritance:

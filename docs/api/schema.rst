@@ -1,7 +1,7 @@
 Schema
 ======
 
-.. automodule:: slide_maker.schema
+.. automodule:: deckoction.schema
    :members:
    :undoc-members:
    :show-inheritance:

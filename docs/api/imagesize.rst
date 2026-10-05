@@ -1,7 +1,7 @@
 Image Size
 ==========
 
-.. automodule:: slide_maker.imagesize
+.. automodule:: deckoction.imagesize
    :members:
    :undoc-members:
    :show-inheritance:

@@ -1,7 +1,7 @@
 Thumbnail
 =========
 
-.. automodule:: slide_maker.thumbnail
+.. automodule:: deckoction.thumbnail
    :members:
    :undoc-members:
    :show-inheritance:

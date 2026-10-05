@@ -6,9 +6,9 @@ from unittest.mock import patch
 
 import pytest
 
-from slide_maker.build import build
-from slide_maker.parser import SlideMakerError
-from slide_maker.pdf_images import rasterize_pdf
+from deckoction.build import build
+from deckoction.parser import SlideMakerError
+from deckoction.pdf_images import rasterize_pdf
 
 pymupdf = pytest.importorskip("pymupdf")
 
@@ -42,7 +42,7 @@ def test_rasterize_pdf_produces_png_at_correct_dpi(tmp_path):
 
     assert png_path == out_dir / "figure.png"
     assert png_path.exists()
-    from slide_maker import imagesize
+    from deckoction import imagesize
 
     width, height = imagesize.get_size(png_path)
     assert abs(width - round(400 * 200 / 72)) <= 1

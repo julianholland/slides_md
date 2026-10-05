@@ -1,7 +1,7 @@
 Build
 =====
 
-.. automodule:: slide_maker.build
+.. automodule:: deckoction.build
    :members:
    :undoc-members:
    :show-inheritance:

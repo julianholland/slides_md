@@ -8,5 +8,5 @@ specific design decisions). This file exists only so that AGENTS.md-reading tool
 
 Keep `CLAUDE.md` up to date when you add or change a feature — it's the first
 thing an agent restarting in this repo should read, and it has fallen behind
-actual code before (e.g. the PDF/thumbnail export pipeline in `slide_maker/pdf.py`
-and `slide_maker/thumbnail.py` went undocumented for a while after being added).
+actual code before (e.g. the PDF/thumbnail export pipeline in `deckoction/pdf.py`
+and `deckoction/thumbnail.py` went undocumented for a while after being added).

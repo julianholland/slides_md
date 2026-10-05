@@ -1,15 +1,15 @@
-"""Sphinx configuration for slide_maker documentation."""
+"""Sphinx configuration for deckoction documentation."""
 
 import sys
 from pathlib import Path
 
-# slide_maker's package lives at the repo root (no src/ layout).
+# deckoction's package lives at the repo root (no src/ layout).
 sys.path.insert(0, str(Path(__file__).parent.parent))
 # So `import _demo_build` below (and Sphinx's own config loading) can find it.
 sys.path.insert(0, str(Path(__file__).parent))
 
 # Project information
-project = "slide_maker"
+project = "deckoction"
 copyright = "2026, Julian Holland"
 author = "Julian Holland"
 release = "0.1.0"
@@ -49,7 +49,7 @@ source_suffix = {
 # Master document
 master_doc = "index"
 
-# docs/demo/*/slides.md are slide_maker deck *source* files (consumed by
+# docs/demo/*/slides.md are deckoction deck *source* files (consumed by
 # _demo_build.py), not documentation pages -- keep Sphinx from trying to
 # parse them as content.
 exclude_patterns = ["_build", "demo"]

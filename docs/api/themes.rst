@@ -1,7 +1,7 @@
 Themes
 ======
 
-.. automodule:: slide_maker.themes
+.. automodule:: deckoction.themes
    :members:
    :undoc-members:
    :show-inheritance:

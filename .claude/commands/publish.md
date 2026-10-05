@@ -13,7 +13,7 @@ allowed-tools: Bash(gh run list:*), Bash(gh run view:*), Bash(git status:*), Bas
 ## Your task
 
 You are publishing a new release of slides_md to PyPI (distribution name `deckoction-md`; the
-import package is `slide_maker`). Follow these steps in order, stopping and reporting
+import package is `deckoction`). Follow these steps in order, stopping and reporting
 clearly if any step fails.
 
 ### Step 1 — Verify CI is green on master
@@ -85,8 +85,8 @@ Do not simply ask the user whether updates are needed. Make the judgement yourse
 1. Collect the changes since the previous tag (for the first release, use the root commit, `git rev-list --max-parents=0 HEAD`, in place of `<previous_tag>`):
    ```bash
    git log <previous_tag>..HEAD --oneline
-   git diff <previous_tag>..HEAD --stat -- slide_maker/ docs/ examples/ README.md CLAUDE.md
-   git diff <previous_tag>..HEAD -- slide_maker/
+   git diff <previous_tag>..HEAD --stat -- deckoction/ docs/ examples/ README.md CLAUDE.md
+   git diff <previous_tag>..HEAD -- deckoction/
    ```
    Use the release's CHANGELOG entries as a guide to what changed, but verify against the diff: the changelog can be incomplete.
 2. For each user-facing or architectural change (new layouts, new/changed frontmatter or `deck.yaml` fields, changed defaults, new CLI flags, new themes, new extras), check whether it is already documented:

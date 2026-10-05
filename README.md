@@ -1,4 +1,4 @@
-# slide_maker
+# deckoction
 
 [![CI](https://github.com/julianholland/slides_md/actions/workflows/ci.yml/badge.svg)](https://github.com/julianholland/slides_md/actions/workflows/ci.yml)
 [![Documentation Status](https://readthedocs.org/projects/slides-md/badge/?version=latest)](https://slides-md.readthedocs.io/en/latest/?badge=latest)
@@ -276,7 +276,7 @@ bibliography: refs.bib       # numbered citations — see Citations & references
   | `neuefische` | Dark violet background with Neuefische's brand orange (`#f44717`) as the accent, the "Poppins" font, and a subtle Neuefische logo watermark |
   | `fhi` | Light background with dark teal body text/panels, an olive-green (`#a5b631`) accent, the "Poppins" font, and a subtle FHI logo watermark — the one light-background preset, so its title slide overrides `title-fg` (see below) to stay legible |
 
-  New presets are added by registering a `ThemeDefinition` in `slide_maker/themes.py` — see
+  New presets are added by registering a `ThemeDefinition` in `deckoction/themes.py` — see
   that module for the fields (`colors`, `font_body`, `watermark`).
 
 - **A raw dict of CSS custom-property overrides** (the original form, still fully
@@ -304,7 +304,7 @@ slides_md <input.md>          # build into build/ next to input, then serve it
 `slides_md` is the quick preview shortcut; for every other option use the full command:
 
 ```
-python -m slide_maker build <input.md> -o <output_dir>
+python -m deckoction build <input.md> -o <output_dir>
   [--config deck.yaml]        # default: deck.yaml next to input, if present
   [--images-dir DIR]          # default: input file's directory
   [--strict]                  # promote warnings (missing image_alt, unknown fields, etc.) to errors

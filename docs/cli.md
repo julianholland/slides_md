@@ -10,7 +10,7 @@ slides_md <input.md>          # build into build/ next to input, then serve it
 `slides_md` is the quick preview shortcut; for every other option use the full command:
 
 ```
-python -m slide_maker build <input.md> -o <output_dir>
+python -m deckoction build <input.md> -o <output_dir>
   [--config deck.yaml]        # default: deck.yaml next to input, if present
   [--images-dir DIR]          # default: input file's directory
   [--strict]                  # promote warnings (missing image_alt, unknown fields, etc.) to errors

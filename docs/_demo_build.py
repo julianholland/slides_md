@@ -4,7 +4,7 @@ iframes. Called from conf.py at import time — see the comment there for why.""
 import sys
 from pathlib import Path
 
-from slide_maker.build import build
+from deckoction.build import build
 
 DEMO_SRC = Path(__file__).parent / "demo"
 DEMO_OUT = Path(__file__).parent / "_static" / "demo"

@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from slide_maker.imagesize import ImageSizeError, get_size
+from deckoction.imagesize import ImageSizeError, get_size
 
 DEMO_IMAGES = Path(__file__).resolve().parents[1] / "examples" / "demo" / "images"
 

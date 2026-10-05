@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from slide_maker.build import build
-from slide_maker.parser import SlideMakerError
+from deckoction.build import build
+from deckoction.parser import SlideMakerError
 
 DEMO_DIR = Path(__file__).resolve().parents[1] / "examples" / "demo"
 

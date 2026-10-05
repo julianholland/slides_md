@@ -1,7 +1,7 @@
 Parser
 ======
 
-.. automodule:: slide_maker.parser
+.. automodule:: deckoction.parser
    :members:
    :undoc-members:
    :show-inheritance:

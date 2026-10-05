@@ -1,7 +1,7 @@
 PDF Images
 ==========
 
-.. automodule:: slide_maker.pdf_images
+.. automodule:: deckoction.pdf_images
    :members:
    :undoc-members:
    :show-inheritance:

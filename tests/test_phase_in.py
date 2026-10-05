@@ -1,8 +1,8 @@
 import pytest
 
-from slide_maker.build import build
-from slide_maker.parser import SlideMakerError
-from slide_maker.phase_in import bullet_phase_classes, render_with_phase_tags
+from deckoction.build import build
+from deckoction.parser import SlideMakerError
+from deckoction.phase_in import bullet_phase_classes, render_with_phase_tags
 
 
 def _build(tmp_path, body_text, strict=False):

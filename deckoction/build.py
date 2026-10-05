@@ -46,7 +46,7 @@ class ImageResolver:
         if cached is not None:
             return cached
         if self._pdf_scratch_dir is None:
-            self._pdf_scratch_dir = tempfile.TemporaryDirectory(prefix="slide_maker_pdf_")
+            self._pdf_scratch_dir = tempfile.TemporaryDirectory(prefix="deckoction_pdf_")
         png_path = pdf_images.rasterize_pdf(pdf_path, Path(self._pdf_scratch_dir.name), slide_index=slide_index)
         self._pdf_cache[pdf_path] = png_path
         return png_path

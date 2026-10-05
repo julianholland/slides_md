@@ -236,7 +236,7 @@ Any `image` (on `content` or `image` layouts), `background`, or `images`/`panels
 accepts a LaTeX-`mwe`-style placeholder name instead of a real file path — no image asset
 needed while drafting: `example-image` (a plain outlined box) or `example-image-a`
 through `example-image-z` (the same box with that letter in it, e.g. `example-image-c`).
-These are bundled with the package (`slide_maker/placeholder_images/`, produced by
+These are bundled with the package (`deckoction/placeholder_images/`, produced by
 `scripts/generate_placeholders.py`) and copied into the build like any other referenced
 image. Omitted `alt` text is auto-filled (e.g. "Placeholder image C"), so no warning
 fires for a placeholder left without one.
@@ -267,7 +267,7 @@ watermark image in one line. Shipped presets:
 | `neuefische` | Dark violet background with Neuefische's brand orange (`#f44717`) as the accent, the "Poppins" font, and a subtle Neuefische logo watermark |
 | `fhi` | Light background with dark teal body text/panels, an olive-green (`#a5b631`) accent, the "Poppins" font, and a subtle FHI logo watermark — the one light-background preset, so its title slide overrides `title-fg` (see below) to stay legible |
 
-New presets are added by registering a `ThemeDefinition` in `slide_maker/themes.py` — see
+New presets are added by registering a `ThemeDefinition` in `deckoction/themes.py` — see
 {doc}`api/schema` and {doc}`api/build` for how a resolved theme flows into a build; no
 other file needs to change to add one.
 

@@ -1,4 +1,4 @@
-from slide_maker.render import (
+from deckoction.render import (
     check_unsupported_body_syntax,
     render_body,
     render_formula,

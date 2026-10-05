@@ -1,4 +1,4 @@
-from slide_maker.placeholders import PLACEHOLDER_DIR, placeholder_alt, resolve_placeholder
+from deckoction.placeholders import PLACEHOLDER_DIR, placeholder_alt, resolve_placeholder
 
 
 def test_resolve_bare_placeholder():

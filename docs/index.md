@@ -1,6 +1,6 @@
-# slide_maker Documentation
+# deckoction Documentation
 
-Welcome to slide_maker — turn a single Markdown file into a static HTML slide deck.
+Welcome to deckoction — turn a single Markdown file into a static HTML slide deck.
 
 ```{toctree}
 :maxdepth: 2
@@ -17,7 +17,7 @@ contributing
 
 ## Overview
 
-slide_maker takes one Markdown file with YAML frontmatter per slide and renders it to
+deckoction takes one Markdown file with YAML frontmatter per slide and renders it to
 plain HTML/CSS/JS — no client-side framework, no build step, no CDN dependency in the
 output. It's the same vanilla approach as the hand-built `sulfur_slides` deck it's
 modeled on: a dark theme, keyboard/click navigation, click-to-zoom images, and vendored

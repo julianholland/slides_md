@@ -1,6 +1,6 @@
 # Installation
 
-## Installing slide_maker
+## Installing deckoction
 
 Install the published package from PyPI (as a standalone CLI tool, via
 [uv](https://docs.astral.sh/uv/)):
@@ -18,9 +18,9 @@ uv sync
 ```
 
 (The PyPI distribution is named `deckoction-md`; the importable Python package is
-`slide_maker`. In a checkout, prefix commands with `uv run`, e.g. `uv run slides_md ...`.)
+`deckoction`. In a checkout, prefix commands with `uv run`, e.g. `uv run slides_md ...`.)
 
-This installs the `slide-maker` and `slides_md` console scripts and enables `python -m slide_maker`.
+This installs the `slide-maker` and `slides_md` console scripts and enables `python -m deckoction`.
 Requires Python 3.10 or later.
 
 ### Runtime dependencies

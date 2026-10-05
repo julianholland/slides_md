@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from slide_maker.build import build
+from deckoction.build import build
 
 DEMO_SRC = Path(__file__).resolve().parents[1] / "docs" / "demo"
 DECK_NAMES = ("full", "title", "content", "stacked", "split", "image")

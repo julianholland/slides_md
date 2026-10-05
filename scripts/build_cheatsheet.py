@@ -2,7 +2,7 @@
 """One-off generator for the downloadable feature cheatsheet PDF.
 
 Dev-only tool (not part of the installed package, not a runtime dependency — requires
-the `pdf` extra, same as `slide_maker.pdf.export_pdf`: `uv sync --extra pdf` plus a
+the `pdf` extra, same as `deckoction.pdf.export_pdf`: `uv sync --extra pdf` plus a
 one-time `uv run playwright install chromium`). Builds `examples/cheatsheet/slides.md` into a
 throwaway directory and exports it to `docs/_static/cheatsheet.pdf`, one page per slide.
 Run this again and re-commit the output whenever the cheatsheet deck changes:
@@ -15,8 +15,8 @@ from __future__ import annotations
 import tempfile
 from pathlib import Path
 
-from slide_maker.build import build
-from slide_maker.pdf import export_pdf
+from deckoction.build import build
+from deckoction.pdf import export_pdf
 
 ROOT = Path(__file__).resolve().parent.parent
 SLIDES = ROOT / "examples" / "cheatsheet" / "slides.md"

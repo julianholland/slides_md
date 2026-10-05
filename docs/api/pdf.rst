@@ -1,7 +1,7 @@
 Pdf
 ===
 
-.. automodule:: slide_maker.pdf
+.. automodule:: deckoction.pdf
    :members:
    :undoc-members:
    :show-inheritance:

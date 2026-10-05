@@ -2,7 +2,7 @@
 """One-off generator for the bundled `example-image[-a..z]` placeholder PNGs.
 
 Dev-only tool (not part of the installed package, not a runtime dependency —
-requires Pillow, which slide_maker itself does not depend on). Run this again
+requires Pillow, which deckoction itself does not depend on). Run this again
 and re-commit the output if the placeholder style needs to change:
 
     python3 scripts/generate_placeholders.py
@@ -15,7 +15,7 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 
-OUT_DIR = Path(__file__).resolve().parent.parent / "slide_maker" / "placeholder_images"
+OUT_DIR = Path(__file__).resolve().parent.parent / "deckoction" / "placeholder_images"
 
 SIZE = 640
 MARGIN = 18

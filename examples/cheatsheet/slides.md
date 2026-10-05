@@ -1,6 +1,6 @@
 ---
 layout: title
-title: slide_maker Cheatsheet
+title: deckoction Cheatsheet
 subtitle: Minimal snippet per feature
 date: today
 ---

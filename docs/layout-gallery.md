@@ -1,6 +1,6 @@
 # Layout Gallery
 
-A live, click/keyboard-navigable example of each of slide_maker's six layouts, built
+A live, click/keyboard-navigable example of each of deckoction's six layouts, built
 from real figures pulled from an actual research talk (with the talk's own narrative text
 replaced by placeholder copy — the images and the one LaTeX formula below are genuine,
 reused as-is). These decks are rebuilt from source every time these docs are built, so

@@ -44,7 +44,7 @@ image_alt: Diagram of the pipeline
 Then build it:
 
 ```bash
-python -m slide_maker build slides.md -o build/mydeck --serve
+python -m deckoction build slides.md -o build/mydeck --serve
 ```
 
 See {doc}`authoring-guide` for the full field reference and {doc}`cli` for every CLI

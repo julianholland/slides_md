@@ -1,8 +1,8 @@
 import pytest
 
-from slide_maker.build import build
-from slide_maker.parser import SlideMakerError
-from slide_maker.references import find_citations, format_acs, parse_bibtex, parse_plain
+from deckoction.build import build
+from deckoction.parser import SlideMakerError
+from deckoction.references import find_citations, format_acs, parse_bibtex, parse_plain
 
 BIB = """\
 @article{smith2020,
