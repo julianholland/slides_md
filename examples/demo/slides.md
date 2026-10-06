@@ -120,6 +120,7 @@ title: Full-Bleed Image Slide
 layout: stacked
 kicker: Math
 title: KaTeX Support
+subtitle: Inline and block math, rendered by vendored KaTeX
 formula: E = \int_{q_{min}}^{q_{max}} S(q)\, dq
 formula_note: Rendered client-side with vendored KaTeX (no CDN)
 ---

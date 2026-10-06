@@ -111,6 +111,13 @@ html, body {
   font-weight: 500;
 }
 
+/* optional line under the h1 on any layout; the title slide overrides it below */
+.slide .subtitle {
+  font-size: 1.4rem;
+  color: var(--fg-muted);
+  margin: -0.1em 0 0.8em 0;
+}
+
 .slide-body {
   flex: 1;
   display: flex;
@@ -443,6 +450,10 @@ code {
 
 .image-caption h2.kicker {
   margin: 0 0 0.3em 0;
+}
+
+.image-caption .subtitle {
+  margin: 0.3em 0 0 0;
 }
 
 .title-slide .subtitle {

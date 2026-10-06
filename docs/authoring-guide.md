@@ -62,7 +62,7 @@ See {doc}`layout-gallery` for a live example of each of these.
 | `layout` | all | `title` / `content` / `stacked` / `split` / `image`; default `content` |
 | `title` | all | required for `title` layout; optional caption for `image` |
 | `kicker` | content/stacked/split/image | small uppercase label above the title |
-| `subtitle` | title | |
+| `subtitle` | all | a line under the title (on `image`, inside the caption overlay) |
 | `author` | title | falls back to `deck.yaml`'s `default_author` |
 | `date` | title | literal string, or `today` to fill in the build date |
 | `image` / `image_alt` / `image_label` / `image_reference` | content, image | on `content`, a boxed image with an optional caption `image_label` (mutually exclusive with `video`/`panels`/`images`); on `image`, the full-bleed slide image (required, mutually exclusive with `background`). Accepts a placeholder name (see below) in place of a real path. `image_reference` cites a bibliography key, numbering it in the image's top-right corner (see below) |

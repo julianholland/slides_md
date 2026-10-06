@@ -164,6 +164,25 @@ def test_image_layout_invalid_fit_rejected(tmp_path):
         build(input_path=src, output_dir=tmp_path / "out")
 
 
+@pytest.mark.parametrize(
+    "fields",
+    [
+        "layout: content\ntitle: T",
+        "layout: stacked\ntitle: T",
+        "layout: split\ntitle: T\npanels:\n  - image: example-image\n    label: L",
+        "layout: image\ntitle: T\nimage: example-image",
+        "layout: references\ntitle: T",
+    ],
+)
+def test_subtitle_renders_below_title_on_every_layout(tmp_path, fields):
+    src = tmp_path / "slides.md"
+    src.write_text(f"---\n{fields}\nsubtitle: Sub line\n---\n\n- body\n")
+    result = build(input_path=src, output_dir=tmp_path / "out", strict=True)
+    assert result.warnings == []
+    html = (tmp_path / "out" / "index.html").read_text()
+    assert '<h1>T</h1><p class="subtitle">Sub line</p>' in html
+
+
 def test_fit_on_non_image_layout_warns(tmp_path):
     src = tmp_path / "slides.md"
     src.write_text("---\nlayout: content\ntitle: A\nfit: cover\n---\nbody\n")

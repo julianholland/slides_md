@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A `phase_images` entry on a `content` slide can now be an `images` group
   (`- images: [{image: ...}, {image: ...}, ...]`) shown together on that reveal step,
   arranged like the `images` field.
+- `subtitle` now works on every layout, not just `title`: it renders as a line under the
+  title (inside the caption overlay on `image`). Previously it was silently ignored on
+  other layouts.
 
 ### Changed
 - Two-image `images` now use the same row search, which assumes the real (wider than
