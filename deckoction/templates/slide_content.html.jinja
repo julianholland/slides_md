@@ -12,7 +12,9 @@
     {%- endif %}
   </div>
   <div class="media-col">
-    {%- if slide.image %}
+    {%- if slide.equation %}
+    <div class="media-equation">{{ slide.equation }}</div>
+    {%- elif slide.image %}
     <div class="media-item">
       <img src="{{ slide.image }}" alt="{{ slide.image_alt }}">
       {%- if slide.image_label %}<div class="panel-label">{{ slide.image_label }}</div>{% endif %}

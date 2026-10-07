@@ -351,3 +351,40 @@ def test_phase_images_entry_without_image_is_a_clear_error(tmp_path):
     deck = "---\nlayout: content\ntitle: X\nphase_in: true\nphase_images:\n  - alt: oops\n---\n\n- A\n"
     with pytest.raises(SlideMakerError, match=r"phase_images\[0\] must be a mapping with an 'image' field"):
         _build(tmp_path, deck)
+
+
+EQUATION_DECK = """---
+layout: content
+title: Eq
+phase_in: true
+phase_images:
+  - equation: $a^2+b^2=c^2$
+  - image: example-image-a
+---
+
+- First
+- Second
+"""
+
+
+def test_phase_images_equation_step_then_image(tmp_path):
+    result, html = _build(tmp_path, EQUATION_DECK, strict=True)
+    assert result.slide_count == 3
+    first, second, final = _sections(html)
+    assert '<div class="media-equation">$$a^2+b^2=c^2$$</div>' in first
+    assert "<img" not in first.split('class="media-col"')[1]
+    for sec in (second, final):
+        assert "media-equation" not in sec
+        assert 'src="slide_images/example-image-a.png"' in sec
+
+
+def test_phase_images_equation_rejected_on_image_layout(tmp_path):
+    deck = "---\nlayout: image\nphase_in: true\nphase_images:\n  - equation: a\n---\n"
+    with pytest.raises(SlideMakerError, match="'equation' step is only supported on layout 'content'"):
+        _build(tmp_path, deck)
+
+
+def test_phase_images_equation_and_image_in_one_entry_rejected(tmp_path):
+    deck = EQUATION_DECK.replace("  - equation: $a^2+b^2=c^2$\n", "  - equation: a\n    image: example-image-b\n")
+    with pytest.raises(SlideMakerError, match="may set 'equation' or 'image'/'images', not both"):
+        _build(tmp_path, deck)

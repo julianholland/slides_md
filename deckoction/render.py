@@ -54,3 +54,14 @@ def render_formula(formula: str) -> str:
     CommonMark's underscore-emphasis flanking rules.
     """
     return f"$${formula}$$"
+
+
+def render_equation(equation: str) -> str:
+    """Display-math markup for a media-column `equation`: one outer `$...$` or
+    `$$...$$` pair is optional, so `$a$`, `$$a$$` and `a` all render the same."""
+    text = str(equation).strip()
+    for delim in ("$$", "$"):
+        if len(text) > 2 * len(delim) - 1 and text.startswith(delim) and text.endswith(delim):
+            text = text[len(delim):-len(delim)].strip()
+            break
+    return render_formula(text)

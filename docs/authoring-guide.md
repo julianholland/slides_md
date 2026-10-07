@@ -68,6 +68,7 @@ See {doc}`layout-gallery` for a live example of each of these.
 | `image` / `image_alt` / `image_label` / `image_reference` | content, image | on `content`, a boxed image with an optional caption `image_label` (mutually exclusive with `video`/`panels`/`images`); on `image`, the full-bleed slide image (required, mutually exclusive with `background`). Accepts a placeholder name (see below) in place of a real path. `image_reference` cites a bibliography key, numbering it in the image's top-right corner (see below) |
 | `images` | content | 2 or more `{image, label?, alt?, reference?}`; auto-arranged into rows in reading order from their aspect ratios (mutually exclusive with `image`/`video`/`panels`) |
 | `video` | content | mutually exclusive with `image`/`panels`/`images` |
+| `equation` | content | LaTeX (surrounding `$...$`/`$$...$$` optional) shown as display math in the media column, in place of an image; mutually exclusive with `image`/`video`/`panels`/`images`/`phase_in` |
 | `panels` | content, split | list of `{image, label, alt?, reference?}`; required for `split` |
 | `background` | all except `image` | image path; layers behind the slide content |
 | `background_opacity` | all | `0.0`-`1.0`, default `1.0` |
@@ -78,7 +79,7 @@ See {doc}`layout-gallery` for a live example of each of these.
 | `id` / `classes` | all | override the slide's `id`, or add extra CSS classes |
 | `phase_in` | content | `true` to reveal the body's bullets one at a time (see below); mutually exclusive with `image`/`video`/`images`/`panels` |
 | `phase_level` | content | with `phase_in: true`: which bullet-indent level drives the reveal (`1` = top-level, default; `2` = first sub-level; ...) |
-| `phase_images` | content, image | with `phase_in: true`: list of `{image, alt?, reference?}` shown one per reveal step, freezing on the last once exhausted; on `content` an entry can be `{images: [...]}` (2 or more) to show a group on that step |
+| `phase_images` | content, image | with `phase_in: true`: list of `{image, alt?, reference?}` shown one per reveal step, freezing on the last once exhausted; on `content` an entry can be `{images: [...]}` (2 or more) to show a group on that step, or `{equation: ...}` to show an equation |
 
 Any slide can carry a `background` + `background_opacity` — this is independent of the
 title slide's translucent panel, so a dimmed background works on content slides too.

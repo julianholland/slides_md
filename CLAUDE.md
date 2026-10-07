@@ -147,6 +147,14 @@ dataclass as `split`'s `panels` (`image`/`label`/`alt`) rather than a separate t
 since the shape is identical; the single boxed `image` field has its own parallel
 `image_label` for a caption. Both render via a shared `.panel-label` CSS class.
 
+**`equation`** (`content` layout only): display math in the `.media-col`, in place of an
+image — one more member of the content media-exclusivity set. `render.py:render_equation`
+strips one optional outer `$`/`$$` pair and reuses `render_formula`'s `$$` wrapping; the
+template outputs it *autoescaped* (unlike `formula_html`'s `| safe`), which is fine since
+KaTeX auto-render reads text nodes. A `phase_images` entry `{equation: ...}` becomes a
+`Panel` with `.equation` set (and `image=""`); `phase_in.expand_slide` sets every media
+field (`equation`/`image`/`images`) on each clone so steps never leak into each other.
+
 **Click-to-zoom lightbox**: a single `#lightbox` element in `base.html.jinja` (once per
 page, not per slide); `assets/script.js` attaches a click handler to every
 `.slide-content img` that opens it fit-to-screen, and guards the existing arrow-key slide

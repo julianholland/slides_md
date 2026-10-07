@@ -32,18 +32,18 @@ def test_build_demo_deck(tmp_path):
     out = tmp_path / "out"
     result = build(input_path=DEMO_DIR / "slides.md", output_dir=out)
 
-    # 12 authored slides; the phase-in content slide (2 bullets) expands to 3 physical
+    # 13 authored slides; the phase-in content slide (3 bullets) expands to 4 physical
     # slides, the phase-in split slide (3 panels) to 4, the phase-in image slide
     # (3 phase_images) to 3
-    assert result.slide_count == 19
+    assert result.slide_count == 21
     assert result.warnings == []
 
     html = (out / "index.html").read_text()
-    assert html.count('<section class="slide') == 19
+    assert html.count('<section class="slide') == 21
     # every phase-in slide's physical steps share one display number
-    assert html.count('data-display-index="5"') == 3
-    assert html.count('data-display-index="10"') == 4
-    assert html.count('data-display-index="11"') == 3
+    assert html.count('data-display-index="5"') == 4
+    assert html.count('data-display-index="11"') == 4
+    assert html.count('data-display-index="12"') == 3
 
     # citations: cited once in body text + once via image_reference, same key -> 1 ref
     assert html.count('<sup class="citation">[1]</sup>') == 1
@@ -53,6 +53,8 @@ def test_build_demo_deck(tmp_path):
     # title bg + alpha content-slide bg + full-bleed image-layout slide + 3 image cycle steps
     assert html.count('class="bg-layer"') == 6
     assert html.count('class="formula-box"') == 1
+    # the `equation` slide + the phase-in content slide's equation step
+    assert html.count('class="media-equation"') == 2
     assert html.count("<table>") == 1
     # plain split: 2; phase-in split: 1 current panel on each of 3 steps + 3 on the final
     assert html.count('class="panel"') == 8
@@ -439,3 +441,38 @@ def test_strict_promotes_missing_alt_warning_to_error(tmp_path):
     # non-strict just warns
     result = build(input_path=src, output_dir=tmp_path / "out2")
     assert any("image_alt" in w for w in result.warnings)
+
+
+def _build_one(tmp_path, deck, strict=False):
+    src = tmp_path / "slides.md"
+    src.write_text(deck)
+    out = tmp_path / "out"
+    result = build(input_path=src, output_dir=out, strict=strict)
+    return result, (out / "index.html").read_text()
+
+
+def test_equation_renders_in_media_col(tmp_path):
+    deck = "---\nlayout: content\ntitle: Eq\nequation: $a^2+b^2=c^2$\n---\n\n- point\n"
+    result, html = _build_one(tmp_path, deck, strict=True)
+    assert not result.warnings
+    media = html.split('class="media-col"')[1]
+    assert media.lstrip(">").strip().startswith('<div class="media-equation">$$a^2+b^2=c^2$$</div>')
+    assert "<img" not in media.split("</section>")[0]
+
+
+def test_equation_is_html_escaped(tmp_path):
+    deck = "---\nlayout: content\ntitle: Eq\nequation: a < b\n---\n"
+    _, html = _build_one(tmp_path, deck)
+    assert '<div class="media-equation">$$a &lt; b$$</div>' in html
+
+
+def test_equation_and_image_are_mutually_exclusive(tmp_path):
+    deck = "---\nlayout: content\ntitle: Eq\nequation: a\nimage: example-image\n---\n"
+    with pytest.raises(SlideMakerError, match="may only set one of"):
+        _build_one(tmp_path, deck)
+
+
+def test_equation_rejected_outside_content_layout(tmp_path):
+    deck = "---\nlayout: stacked\ntitle: Eq\nequation: a\n---\n"
+    with pytest.raises(SlideMakerError, match="equation is only used by layout 'content'"):
+        _build_one(tmp_path, deck)

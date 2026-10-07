@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `equation` field on `content` slides: LaTeX shown as large display math in the media
+  column, in place of an image (surrounding `$...$` optional). A `phase_images` entry
+  on a `content` slide can also be `{equation: ...}`, to show an equation on that step.
 - `images` accepts 2 or more images (was exactly 2). They're arranged into rows in
   reading order, picking the row layout that leaves the least blank space while keeping
   the images roughly the same size.

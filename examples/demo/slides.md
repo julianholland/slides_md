@@ -65,6 +65,7 @@ kicker: Feature
 title: Phase-In Reveal
 phase_in: true
 phase_images:
+  - equation: $S(q) = \sum_i w_i\, e^{-q r_i}$
   - image: example-image-a
   - images:
     - image: example-image-b
@@ -73,7 +74,8 @@ phase_images:
 ---
 
 - Bullets reveal one at a time, dimming as new ones appear
-- The image advances alongside, freezing on the last once exhausted (an entry can be an `images` group)
+- The image advances alongside, freezing on the last once exhausted
+- An entry can be an `images` group, or an `equation` in place of an image
 
 +++
 
@@ -132,6 +134,18 @@ formula_note: Rendered client-side with vendored KaTeX (no CDN)
 |----------|:------:|-----:|
 | Rate     | $S(q)$ | 1/s  |
 | Energy   | $E$    | eV   |
+
++++
+
+---
+layout: content
+kicker: Math
+title: Equation as Media
+equation: $E = \int_{q_{min}}^{q_{max}} S(q)\, dq$
+---
+
+- The `equation` field puts display math in the media column, in place of an image
+- Surrounding `$...$` is optional
 
 +++
 

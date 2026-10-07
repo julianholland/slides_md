@@ -23,7 +23,7 @@ from .parser import SlideMakerError
 # the remainder — it duplicates/overlaps a fragment of the content on the page instead. Always
 # shrinking to an exact fit avoids that pagination bug entirely; a pathological slide (tens of
 # bullets) ends up with small but correctly non-overlapping text instead.
-_TEXT_SELECTOR = "h1, h2.kicker, ul.bullets, blockquote, table, .formula-box, .formula-note, .panel-label, .meta, .subtitle"
+_TEXT_SELECTOR = "h1, h2.kicker, ul.bullets, blockquote, table, .formula-box, .formula-note, .media-equation, .panel-label, .meta, .subtitle"
 _FIT_JS = f"""
 () => {{
   document.querySelectorAll('.slide').forEach((slide) => {{

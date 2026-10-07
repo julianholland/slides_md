@@ -337,6 +337,24 @@ code {
   min-height: 0;
 }
 
+/* `equation` in place of an image: display math, centered in the media column,
+   in the same panel style as .formula-box */
+.media-equation {
+  max-width: 100%;
+  max-height: 100%;
+  padding: 1em 1.4em;
+  background: var(--bg-panel);
+  border-left: 4px solid var(--accent);
+  border-radius: 6px;
+  font-size: 2.6rem;
+  color: var(--panel-fg);
+  overflow: auto;
+}
+
+.media-equation .katex-display {
+  margin: 0;
+}
+
 /* image grid: rows chosen at build time (build.py:arrange_images); inline flex-grow on
    each row (1 / summed aspect) and item (its aspect) reproduces justified rows */
 .image-grid {

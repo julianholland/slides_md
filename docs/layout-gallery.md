@@ -79,7 +79,8 @@ images:
 
 `phase_in: true` on a `content` slide steps through its bullets one at a time (each
 step is its own slide for navigation, sharing one number in the counter), optionally
-cycling `phase_images` one per step and freezing on the last once exhausted.
+cycling `phase_images` one per step and freezing on the last once exhausted. An entry
+can be `- equation: $a^2+b^2=c^2$` to show display math in place of an image on that step.
 
 ```yaml
 ---

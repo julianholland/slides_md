@@ -252,6 +252,7 @@ def _slide_context(
         image_label=slide.image_label,
         image_reference=_citation_badge(slide.image_reference, citations),
         image_rows=image_rows,
+        equation=render_mod.render_equation(slide.equation) if slide.equation else None,
         video=slide.video,
         panels=panels,
         background=background,

@@ -1,6 +1,7 @@
 from deckoction.render import (
     check_unsupported_body_syntax,
     render_body,
+    render_equation,
     render_formula,
 )
 
@@ -56,3 +57,8 @@ def test_pipe_table_renders_as_table():
     assert '<td style="text-align:right"><strong>2</strong></td>' in html
     assert "<td>$x$</td>" in html  # inline math left for client-side KaTeX
     assert check_unsupported_body_syntax(body) == []
+
+
+def test_render_equation_strips_optional_dollar_delimiters():
+    for src in ("$a^2$", "$$a^2$$", "a^2", "  $ a^2 $  "):
+        assert render_equation(src) == "$$a^2$$"

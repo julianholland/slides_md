@@ -25,16 +25,18 @@ KNOWN_FIELDS = {
     "layout", "title", "kicker", "subtitle", "author", "date",
     "image", "image_alt", "image_label", "images", "video", "panels", "background",
     "background_opacity", "fit", "formula", "formula_note", "notes", "id", "classes",
-    "phase_in", "phase_images", "phase_level", "image_reference",
+    "phase_in", "phase_images", "phase_level", "image_reference", "equation",
 }
 
 
 @dataclass
 class Panel:
-    image: str
+    image: str = ""
     label: str = ""
     alt: str = ""
     reference: str = ""
+    # Set (instead of `image`) only by a `{equation: ...}` phase_images entry.
+    equation: str = ""
 
 
 @dataclass
@@ -52,6 +54,7 @@ class SlideConfig:
     image_label: str | None = None
     image_reference: str = ""
     images: list[Panel] = field(default_factory=list)
+    equation: str | None = None
     video: str | None = None
     panels: list[Panel] = field(default_factory=list)
     background: str | None = None
@@ -166,6 +169,12 @@ def _phase_image_entry(entry, i: int, layout: str, idx: int) -> list[Panel]:
     """One `phase_images` entry: `{image, ...}` (one image) or `{images: [{image, ...}, ...]}`
     (2+ images shown together on that step, `content` layout only)."""
     where = f"phase_images[{i}]"
+    if isinstance(entry, dict) and "equation" in entry:
+        if layout != "content":
+            raise SlideMakerError(f"{where}: an 'equation' step is only supported on layout 'content'", slide_index=idx)
+        if "image" in entry or "images" in entry:
+            raise SlideMakerError(f"{where} may set 'equation' or 'image'/'images', not both", slide_index=idx)
+        return [Panel(equation=_equation(entry["equation"], f"{where}.equation", idx))]
     if not isinstance(entry, dict) or "images" not in entry:
         return [_panel(entry, where, idx)]
     if layout != "content":
@@ -176,6 +185,14 @@ def _phase_image_entry(entry, i: int, layout: str, idx: int) -> list[Panel]:
     if not isinstance(items, list) or len(items) < 2:
         raise SlideMakerError(f"{where}.images needs at least 2 images (use 'image' for one)", slide_index=idx)
     return [_panel(d, f"{where}.images[{j}]", idx) for j, d in enumerate(items)]
+
+
+def _equation(value, where: str, idx: int) -> str:
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        value = str(value)
+    if not isinstance(value, str) or not value.strip().strip("$").strip():
+        raise SlideMakerError(f"{where} must be a non-empty LaTeX string", slide_index=idx)
+    return value
 
 
 def validate_slide(raw_slide: RawSlide, deck: DeckConfig, strict: bool) -> SlideConfig:
@@ -253,12 +270,18 @@ def validate_slide(raw_slide: RawSlide, deck: DeckConfig, strict: bool) -> Slide
         raise SlideMakerError("phase_images is only used by layouts 'content' and 'image'", slide_index=idx)
     for i, entry in enumerate(phase_images):
         for j, item in enumerate(entry):
-            if item.alt or placeholders.resolve_placeholder(item.image):
+            if item.equation or item.alt or placeholders.resolve_placeholder(item.image):
                 continue
             msg = f"phase_images[{i}] set without alt" if len(entry) == 1 else f"phase_images[{i}].images[{j}] set without alt"
             if strict:
                 raise SlideMakerError(msg, slide_index=idx)
             warnings.append(msg)
+
+    equation = None
+    if "equation" in fm:
+        if layout != "content":
+            raise SlideMakerError("equation is only used by layout 'content'", slide_index=idx)
+        equation = _equation(fm["equation"], "equation", idx)
 
     slide = SlideConfig(
         index=idx,
@@ -274,6 +297,7 @@ def validate_slide(raw_slide: RawSlide, deck: DeckConfig, strict: bool) -> Slide
         image_label=fm.get("image_label"),
         image_reference=fm.get("image_reference", ""),
         images=images,
+        equation=equation,
         video=fm.get("video"),
         panels=panels,
         background=fm.get("background"),
@@ -298,12 +322,12 @@ def validate_slide(raw_slide: RawSlide, deck: DeckConfig, strict: bool) -> Slide
         if not slide.title:
             raise SlideMakerError("layout 'title' requires a 'title' field", slide_index=idx)
     elif layout == "content":
-        media_fields = [f for f in ("image", "panels", "video", "images") if fm.get(f)]
+        media_fields = [f for f in ("image", "panels", "video", "images", "equation") if fm.get(f)]
         if phase_in:
             media_fields.append("phase_in")
         if len(media_fields) > 1:
             raise SlideMakerError(
-                "layout 'content' may only set one of image/panels/video/images/phase_in, got: "
+                "layout 'content' may only set one of image/panels/video/images/equation/phase_in, got: "
                 + ", ".join(media_fields),
                 slide_index=idx,
             )

@@ -91,6 +91,7 @@ gone from the build.
 | `image` / `image_alt` / `image_label` / `image_reference` | content, image | on `content`, a boxed image with an optional caption `image_label` (mutually exclusive with `video`/`panels`/`images`/`phase_in`); on `image`, the full-bleed slide image (required unless `phase_in` is set, mutually exclusive with `background`/`phase_images`). Accepts a placeholder name or a `.pdf` file in place of a real image path. `image_reference` cites a bibliography key, numbering it in the image's top-right corner |
 | `images` | content | 2 or more `{image, label?, alt?, reference?}`; auto-arranged into rows in reading order from their aspect ratios (mutually exclusive with `image`/`video`/`panels`/`phase_in`) |
 | `video` | content | mutually exclusive with `image`/`panels`/`images`/`phase_in` |
+| `equation` | content | LaTeX (surrounding `$...$`/`$$...$$` optional) shown as display math in the media column, in place of an image; mutually exclusive with `image`/`video`/`panels`/`images`/`phase_in` |
 | `panels` | content, split | list of `{image, label, alt?, reference?}`; required for `split` |
 | `background` | all except `image` | image path (or `.pdf`); layers behind the slide content |
 | `background_opacity` | all | `0.0`-`1.0`, default `1.0` |
@@ -101,7 +102,7 @@ gone from the build.
 | `id` / `classes` | all | override the slide's `id`, or add extra CSS classes |
 | `phase_in` | content, stacked, split, image | `true` to reveal the slide step by step — bullets on `content`/`stacked`, panels on `split`, `phase_images` on `image`; see [Phase-in reveal](#phase-in-reveal). On `content`, mutually exclusive with `image`/`video`/`images`/`panels` |
 | `phase_level` | content, stacked | with `phase_in: true`: which bullet-indent level drives the reveal (`1` = top-level, default; `2` = first sub-level; ...) |
-| `phase_images` | content, image | with `phase_in: true`: list of `{image, alt?, reference?}` shown one per reveal step. On `content`, it stays on the last image once the list runs out, and an entry can instead be `{images: [{image, label?, alt?, reference?}, ...]}` (2 or more) to show a group on that step (arranged like `images`); on `image`, it's required and each entry is one full-bleed step |
+| `phase_images` | content, image | with `phase_in: true`: list of `{image, alt?, reference?}` shown one per reveal step. On `content`, it stays on the last image once the list runs out, and an entry can instead be `{images: [{image, label?, alt?, reference?}, ...]}` (2 or more) to show a group on that step (arranged like `images`), or `{equation: ...}` to show an equation on that step; on `image`, it's required and each entry is one full-bleed step |
 
 Any slide can carry a `background` + `background_opacity` — this is independent of the
 title slide's translucent panel, so a dimmed background works on content slides too.
@@ -146,7 +147,8 @@ This produces 4 physical steps: bullet 1 revealed → bullet 2 revealed (bullet 
 bullet 3 revealed (bullets 1-2 dim) → everything undimmed (the settled final view).
 `phase_images` is optional and cycles one image per step, freezing on the last entry
 once the list runs out — a single-entry list just keeps one static image on screen
-throughout. Sub-bullets always reveal together with their parent bullet.
+throughout. On `content`, an entry can be `- equation: $a^2+b^2=c^2$` instead of an
+image, to show that equation in the media column on that step. Sub-bullets always reveal together with their parent bullet.
 
 `phase_level` changes which indent level drives the reveal (default `1`, top-level
 bullets). `phase_level: 2` reveals at the first sub-bullet level instead — a top-level

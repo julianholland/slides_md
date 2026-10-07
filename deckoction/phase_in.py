@@ -182,10 +182,22 @@ def expand_slide(slide: SlideConfig) -> list[SlideConfig]:
         changes = {}
         # Only content/image use phase_images (schema forbids them elsewhere, and
         # forbids `image` alongside them), so other clones keep their fields as-is.
+        # Each step sets every media field, so an earlier step's equation/image
+        # never leaks into a later one.
         if slide.phase_images:
             entry = slide.phase_images[min(step, len(slide.phase_images) - 1)]
-            if len(entry) == 1:
+            if len(entry) == 1 and entry[0].equation:
                 changes = dict(
+                    equation=entry[0].equation,
+                    image=None,
+                    image_alt="",
+                    image_label=None,
+                    image_reference="",
+                    images=[],
+                )
+            elif len(entry) == 1:
+                changes = dict(
+                    equation=None,
                     image=entry[0].image,
                     image_alt=entry[0].alt,
                     image_label=entry[0].label,
@@ -195,7 +207,9 @@ def expand_slide(slide: SlideConfig) -> list[SlideConfig]:
             else:
                 # An `images` group: rendered through the same path as the `images`
                 # field (rows chosen by build.arrange_images).
-                changes = dict(image=None, image_alt="", image_label=None, image_reference="", images=entry)
+                changes = dict(
+                    equation=None, image=None, image_alt="", image_label=None, image_reference="", images=entry
+                )
         clones.append(
             replace(
                 slide,
