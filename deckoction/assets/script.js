@@ -37,17 +37,58 @@
     }
   }
 
+  // A content slide's `equation` (.media-equation) is scaled to fill its media column:
+  // measure the rendered KaTeX at the CSS base size, then set the box's font-size so the
+  // equation (plus the box's fixed rem padding/border) takes EQUATION_FILL of the
+  // column's width or height, whichever runs out first. Only measurable while the slide
+  // is displayed, so this re-runs on show/resize/font load/print.
+  const EQUATION_FILL = 0.92;
+  const MAX_EQUATION_REM = 10;
+
+  function fitEquations(root) {
+    root.querySelectorAll(".media-equation").forEach((box) => {
+      const math = box.querySelector(".katex-display");
+      const col = box.parentElement;
+      if (!math || !col.clientWidth || !col.clientHeight) return;
+      box.style.fontSize = "";
+      const cs = getComputedStyle(box);
+      const padW = ["paddingLeft", "paddingRight", "borderLeftWidth", "borderRightWidth"]
+        .reduce((sum, k) => sum + parseFloat(cs[k]), 0);
+      const padH = ["paddingTop", "paddingBottom", "borderTopWidth", "borderBottomWidth"]
+        .reduce((sum, k) => sum + parseFloat(cs[k]), 0);
+      const rect = math.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      const scale = Math.min(
+        (col.clientWidth * EQUATION_FILL - padW) / rect.width,
+        (col.clientHeight * EQUATION_FILL - padH) / rect.height
+      );
+      const rootPx = parseFloat(getComputedStyle(document.documentElement).fontSize);
+      const px = Math.min(parseFloat(cs.fontSize) * scale, MAX_EQUATION_REM * rootPx);
+      box.style.fontSize = `${Math.max(px, 1)}px`;
+    });
+  }
+  // exposed for pdf.py, which switches to print media after load
+  window.deckoctionFitEquations = () => fitEquations(document);
+
   function show(index) {
     current = Math.max(0, Math.min(total - 1, index));
     slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
     counterCurrent.textContent = slides[current].dataset.displayIndex;
+    fitEquations(slides[current]);
     fitFootnote(slides[current]);
   }
 
   let resizeTimer;
   window.addEventListener("resize", () => {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => fitFootnote(slides[current]), 100);
+    resizeTimer = setTimeout(() => {
+      fitEquations(slides[current]);
+      fitFootnote(slides[current]);
+    }, 100);
+  });
+  // printing shows every slide at the page size: refit all of them, then back
+  window.matchMedia("print").addEventListener("change", (e) => {
+    fitEquations(e.matches ? document : slides[current]);
   });
 
   function next() {
@@ -146,5 +187,12 @@
         { left: "$", right: "$", display: false },
       ],
     });
+    // show(0) ran before KaTeX rendered (nothing to measure yet). KaTeX's webfonts
+    // also change the metrics once loaded -- and a hidden slide's fonts only start
+    // loading when it's first shown, *after* show() already fitted it with fallback
+    // metrics -- so refit whenever any font finishes loading.
+    fitEquations(slides[current]);
+    document.fonts.ready.then(() => fitEquations(slides[current]));
+    document.fonts.addEventListener("loadingdone", () => fitEquations(slides[current]));
   }
 })();

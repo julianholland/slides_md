@@ -38,3 +38,37 @@ def test_get_size_unsupported_format(tmp_path):
     p.write_bytes(b"just some bytes")
     with pytest.raises(ImageSizeError):
         get_size(p)
+
+
+@pytest.mark.parametrize(
+    "root, expected",
+    [
+        ('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300">', (400, 300)),
+        ('<svg width="4in" height="3in">', (384, 288)),
+        ('<svg width="4in" height="288px">', (384, 288)),
+        ('<svg viewBox="0 0 800 600">', (800, 600)),
+        ('<svg viewBox="0,0,800,600">', (800, 600)),
+        ('<svg width="100%" height="100%" viewBox="0 0 160 90">', (160, 90)),
+        ("<svg\n  height='50'\n  width='200'>", (200, 50)),
+    ],
+)
+def test_get_size_svg(tmp_path, root, expected):
+    p = tmp_path / "a.svg"
+    p.write_text(root + "<rect/></svg>")
+    assert get_size(p) == expected
+
+
+def test_get_size_svg_after_prolog_and_comment(tmp_path):
+    p = tmp_path / "a.svg"
+    p.write_bytes(
+        b'\xef\xbb\xbf<?xml version="1.0"?>\n<!-- made by hand -->\n'
+        b'<!DOCTYPE svg>\n<svg viewBox="0 0 30 10"></svg>'
+    )
+    assert get_size(p) == (30, 10)
+
+
+def test_get_size_svg_without_size_or_viewbox(tmp_path):
+    p = tmp_path / "a.svg"
+    p.write_text('<svg width="100%"><rect/></svg>')
+    with pytest.raises(ImageSizeError, match="no usable width/height or viewBox"):
+        get_size(p)

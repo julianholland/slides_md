@@ -88,10 +88,10 @@ gone from the build.
 | `subtitle` | all | a line under the title (on `image`, inside the caption overlay) |
 | `author` | title | falls back to `deck.yaml`'s `default_author` |
 | `date` | title | literal string, or `today` to fill in the build date |
-| `image` / `image_alt` / `image_label` / `image_reference` | content, image | on `content`, a boxed image with an optional caption `image_label` (mutually exclusive with `video`/`panels`/`images`/`phase_in`); on `image`, the full-bleed slide image (required unless `phase_in` is set, mutually exclusive with `background`/`phase_images`). Accepts a placeholder name or a `.pdf` file in place of a real image path. `image_reference` cites a bibliography key, numbering it in the image's top-right corner |
+| `image` / `image_alt` / `image_label` / `image_reference` | content, image | on `content`, a boxed image with an optional caption `image_label` (mutually exclusive with `video`/`panels`/`images`/`phase_in`); on `image`, the full-bleed slide image (required unless `phase_in` is set, mutually exclusive with `background`/`phase_images`). Accepts PNG/JPEG/GIF/SVG, a placeholder name, or a `.pdf` file. `image_reference` cites a bibliography key, numbering it in the image's top-right corner |
 | `images` | content | 2 or more `{image, label?, alt?, reference?}`; auto-arranged into rows in reading order from their aspect ratios (mutually exclusive with `image`/`video`/`panels`/`phase_in`) |
 | `video` | content | mutually exclusive with `image`/`panels`/`images`/`phase_in` |
-| `equation` | content | LaTeX (surrounding `$...$`/`$$...$$` optional) shown as display math in the media column, in place of an image; mutually exclusive with `image`/`video`/`panels`/`images`/`phase_in` |
+| `equation` | content | LaTeX (surrounding `$...$`/`$$...$$` optional) shown as display math on a highlight box (accent-tinted; a theme can override `equation-bg`/`equation-fg`), scaled to fill the media column, in place of an image; mutually exclusive with `image`/`video`/`panels`/`images`/`phase_in` |
 | `panels` | content, split | list of `{image, label, alt?, reference?}`; required for `split` |
 | `background` | all except `image` | image path (or `.pdf`); layers behind the slide content |
 | `background_opacity` | all | `0.0`-`1.0`, default `1.0` |
@@ -230,6 +230,14 @@ On a `phase_in` slide, the footnote list only shows references for whichever bul
 panel or image is *currently* revealed at each step — not the whole slide's accumulated
 citations — with the final "everything undimmed" step (if the layout has one) showing
 the full combined list.
+
+### Image formats
+
+Image fields take PNG, JPEG, GIF or SVG files (plus `.pdf`, below). An SVG is copied
+as-is and stays vector — sharp at any zoom and in `--pdf` output. For the `images`
+arrangement its aspect ratio comes from the root `<svg>` tag's `width`/`height` (absolute
+units like `px`/`pt`/`in`), or else its `viewBox`; an SVG with neither is a build error
+there.
 
 ### PDFs as images
 

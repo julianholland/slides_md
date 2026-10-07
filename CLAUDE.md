@@ -134,7 +134,9 @@ while drafting never produces warnings to clean up later.
 **`images` grid** (`content` layout only, 2+ entries): `ImageResolver.resolve_with_size`
 reads each image's real pixel dimensions via `deckoction/imagesize.py` — a small
 dependency-free PNG/JPEG/GIF header parser (deliberately not Pillow, to keep the project
-at 3 runtime deps). `build.py:arrange_images` (a pure function, unit-tested directly)
+at 3 runtime deps); SVG size comes from a regex over the root `<svg>` tag (absolute-unit
+`width`/`height`, else `viewBox`), not an XML parser. SVGs need no other special-casing —
+they're copied verbatim and rendered by `<img>`/`background-image` like any raster. `build.py:arrange_images` (a pure function, unit-tested directly)
 returns row sizes: it tries every order-preserving split into consecutive rows (2^(n-1)),
 treats each row as justified (shared height, full width, so a row of summed aspect S is
 1/S tall), fits the block into a `MEDIA_BOX_ASPECT` (1.4, the real `.media-col` shape)
@@ -154,6 +156,16 @@ template outputs it *autoescaped* (unlike `formula_html`'s `| safe`), which is f
 KaTeX auto-render reads text nodes. A `phase_images` entry `{equation: ...}` becomes a
 `Panel` with `.equation` set (and `image=""`); `phase_in.expand_slide` sets every media
 field (`equation`/`image`/`images`) on each clone so steps never leak into each other.
+Sizing is client-side: `script.js:fitEquations` measures the rendered `.katex-display`
+(CSS `width: max-content`, so it's never squeezed by the box) and sets the box's
+font-size to fill `EQUATION_FILL` of the column (capped at `MAX_EQUATION_REM`); padding is
+in rem so it doesn't scale with it. It only measures displayed slides, so it re-runs on
+`show()`, resize, print-media change, and every `document.fonts` `loadingdone` — the
+last is essential: KaTeX webfonts for a hidden slide only start loading when it's first
+shown, i.e. *after* `show()` fitted it with fallback metrics (found via screenshot:
+equations overflowed their box). `pdf.py` calls `window.deckoctionFitEquations()` after
+`emulate_media("print")`. Highlight colors are `--equation-bg` (default: accent mixed
+28% into `--bg`) / `--equation-fg`, both in `themes.COLOR_KEYS`.
 
 **Click-to-zoom lightbox**: a single `#lightbox` element in `base.html.jinja` (once per
 page, not per slide); `assets/script.js` attaches a click handler to every

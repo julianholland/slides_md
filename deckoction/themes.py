@@ -15,7 +15,7 @@ from dataclasses import dataclass
 # CSS custom-property names style.css/base.html.jinja already consume for slide colors.
 COLOR_KEYS = (
     "bg", "bg-panel", "fg", "fg-muted", "accent", "accent-dim", "border",
-    "title-fg", "title-transform", "panel-fg",
+    "title-fg", "title-transform", "panel-fg", "equation-bg", "equation-fg",
 )
 
 

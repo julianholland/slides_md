@@ -21,6 +21,11 @@
      light-bg theme can end up with a dark fg-muted that barely contrasts against its
      own dark bg-panel, needing this set explicitly (e.g. fhi sets it to white). */
   --panel-fg: var(--fg-muted);
+  /* highlight box behind a content slide's `equation` (.media-equation) -- an opaque
+     accent tint over --bg, so it follows every theme's accent; a theme can set either
+     explicitly if its accent tint doesn't contrast with --fg. */
+  --equation-bg: color-mix(in srgb, var(--accent) 28%, var(--bg));
+  --equation-fg: var(--fg);
 }
 
 * {
@@ -337,21 +342,27 @@ code {
   min-height: 0;
 }
 
-/* `equation` in place of an image: display math, centered in the media column,
-   in the same panel style as .formula-box */
+/* `equation` in place of an image: display math on a highlight box, centered in the
+   media column. The font-size here is only a starting point -- assets/script.js
+   (fitEquations) scales it up so the equation fills the column. Padding is in rem so
+   it stays fixed while the font-size is scaled. */
 .media-equation {
   max-width: 100%;
   max-height: 100%;
-  padding: 1em 1.4em;
-  background: var(--bg-panel);
-  border-left: 4px solid var(--accent);
-  border-radius: 6px;
-  font-size: 2.6rem;
-  color: var(--panel-fg);
-  overflow: auto;
+  padding: 1.2rem 2rem;
+  background: var(--equation-bg);
+  border: 2px solid var(--accent);
+  border-radius: 12px;
+  font-size: 2rem;
+  color: var(--equation-fg);
+  overflow: hidden;
 }
 
+/* sized to the equation's own natural width (never squeezed by the box's max-width),
+   which is what fitEquations measures */
 .media-equation .katex-display {
+  display: inline-block;
+  width: max-content;
   margin: 0;
 }
 

@@ -476,3 +476,23 @@ def test_equation_rejected_outside_content_layout(tmp_path):
     deck = "---\nlayout: stacked\ntitle: Eq\nequation: a\n---\n"
     with pytest.raises(SlideMakerError, match="equation is only used by layout 'content'"):
         _build_one(tmp_path, deck)
+
+
+def test_svg_images_work_everywhere_including_the_grid(tmp_path):
+    (tmp_path / "wide.svg").write_text('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 100"></svg>')
+    (tmp_path / "tall.svg").write_text('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="400"></svg>')
+    deck = (
+        "---\nlayout: content\ntitle: One\nimage: wide.svg\nimage_alt: w\nbackground: tall.svg\n---\n"
+        "+++\n---\nlayout: content\ntitle: Grid\nimages:\n"
+        "  - image: wide.svg\n    alt: w\n  - image: tall.svg\n    alt: t\n---\n"
+    )
+    result, html = _build_one(tmp_path, deck, strict=True)
+    assert result.slide_count == 2
+    assert (tmp_path / "out" / "slide_images" / "wide.svg").is_file()
+    assert (tmp_path / "out" / "slide_images" / "tall.svg").is_file()
+    assert 'src="slide_images/wide.svg"' in html
+    assert "slide_images/tall.svg" in html.split('class="bg-layer"')[1].split(">")[0]
+    # grid item flex-grow is each image's aspect over the row's summed aspect: read from
+    # the SVGs' viewBox (4.0) and width/height (0.25)
+    assert 'class="image-grid-item" style="flex: 0.9412 1 0"' in html
+    assert 'class="image-grid-item" style="flex: 0.0588 1 0"' in html

@@ -73,6 +73,8 @@ def export_pdf(output_dir: Path, pdf_path: Path) -> None:
                 page = browser.new_page()
                 page.goto(f"http://127.0.0.1:{port}/index.html", wait_until="networkidle")
                 page.emulate_media(media="print")
+                # every slide is laid out at the page size now: refit equations to it
+                page.evaluate("() => window.deckoctionFitEquations && window.deckoctionFitEquations()")
                 page.evaluate(_FIT_JS)
                 pdf_path.parent.mkdir(parents=True, exist_ok=True)
                 page.pdf(path=str(pdf_path), print_background=True, prefer_css_page_size=True)

@@ -68,7 +68,7 @@ See {doc}`layout-gallery` for a live example of each of these.
 | `image` / `image_alt` / `image_label` / `image_reference` | content, image | on `content`, a boxed image with an optional caption `image_label` (mutually exclusive with `video`/`panels`/`images`); on `image`, the full-bleed slide image (required, mutually exclusive with `background`). Accepts a placeholder name (see below) in place of a real path. `image_reference` cites a bibliography key, numbering it in the image's top-right corner (see below) |
 | `images` | content | 2 or more `{image, label?, alt?, reference?}`; auto-arranged into rows in reading order from their aspect ratios (mutually exclusive with `image`/`video`/`panels`) |
 | `video` | content | mutually exclusive with `image`/`panels`/`images` |
-| `equation` | content | LaTeX (surrounding `$...$`/`$$...$$` optional) shown as display math in the media column, in place of an image; mutually exclusive with `image`/`video`/`panels`/`images`/`phase_in` |
+| `equation` | content | LaTeX (surrounding `$...$`/`$$...$$` optional) shown as display math on a highlight box (accent-tinted; a theme can override `equation-bg`/`equation-fg`), scaled to fill the media column, in place of an image; mutually exclusive with `image`/`video`/`panels`/`images`/`phase_in` |
 | `panels` | content, split | list of `{image, label, alt?, reference?}`; required for `split` |
 | `background` | all except `image` | image path; layers behind the slide content |
 | `background_opacity` | all | `0.0`-`1.0`, default `1.0` |
@@ -229,6 +229,14 @@ show its footnote until that bullet is the current one; the final "everything un
 step shows the full combined list, same as a normal slide would. The inline `[1]`
 marker itself just dims/hides along with its bullet automatically, no special handling
 needed there.
+
+## Image formats
+
+Image fields take PNG, JPEG, GIF or SVG files (plus `.pdf`, below). An SVG is copied
+as-is and stays vector — sharp at any zoom and in `--pdf` output. For the `images`
+arrangement its aspect ratio comes from the root `<svg>` tag's `width`/`height` (absolute
+units like `px`/`pt`/`in`), or else its `viewBox`; an SVG with neither is a build error
+there.
 
 ## PDFs as images
 
